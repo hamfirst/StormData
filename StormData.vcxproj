@@ -18,6 +18,30 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="StormDataChangeNotifier.cpp" />
+    <ClCompile Include="StormDataChangePacket.cpp">
+      <SubType>
+      </SubType>
+    </ClCompile>
+    <ClCompile Include="StormDataChangePacketHelpers.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="StormData.h" />
+    <ClInclude Include="StormDataChangeNotifier.h" />
+    <ClInclude Include="StormDataChangePacket.h">
+      <SubType>
+      </SubType>
+    </ClInclude>
+    <ClInclude Include="StormDataChangePacketHelpers.h" />
+    <ClInclude Include="StormDataEnum.h" />
+    <ClInclude Include="StormDataJson.h" />
+    <ClInclude Include="StormDataList.h" />
+    <ClInclude Include="StormDataMap.h" />
+    <ClInclude Include="StormDataNumber.h" />
+    <ClInclude Include="StormDataParent.h" />
+    <ClInclude Include="StormDataString.h" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CBEDCF5B-D149-46B4-B83C-7363CEB0B455}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
@@ -77,6 +101,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)External</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -89,6 +114,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)External</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -103,6 +129,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)External</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -119,6 +146,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)External</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -126,9 +154,6 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
