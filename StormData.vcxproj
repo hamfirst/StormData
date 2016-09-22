@@ -25,6 +25,7 @@
       </SubType>
     </ClCompile>
     <ClCompile Include="StormDataChangePacketHelpers.cpp" />
+    <ClCompile Include="StormDataJsonUtil.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StormData.h" />
@@ -36,6 +37,7 @@
     <ClInclude Include="StormDataChangePacketHelpers.h" />
     <ClInclude Include="StormDataEnum.h" />
     <ClInclude Include="StormDataJson.h" />
+    <ClInclude Include="StormDataJsonUtil.h" />
     <ClInclude Include="StormDataList.h" />
     <ClInclude Include="StormDataMap.h" />
     <ClInclude Include="StormDataNumber.h" />
