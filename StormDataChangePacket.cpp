@@ -1,9 +1,12 @@
 
 #include "StormDataChangePacket.h"
+#include "StormDataChangeType.refl.meta.h"
+
+#include <StormRefl\StormReflMetaEnum.h>
 
 std::string StormDataCreateChangePacket(const ReflectionChangeNotification & notification)
 {
-  std::string change_packet = notification.m_Type._to_string();
+  std::string change_packet = StormReflGetEnumAsString(notification.m_Type);
   change_packet += ' ';
   change_packet += notification.m_Path;
 

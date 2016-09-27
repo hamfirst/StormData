@@ -1,22 +1,11 @@
 #pragma once
 
 #include "StormData.h"
+#include "StormDataChangeType.refl.h"
 
 #include <functional>
-#include <enum\enum.h>
 
 #ifdef STORM_CHANGE_NOTIFIER
-
-STORM_REFL_ENUM(
-  ReflectionNotifyChangeType,
-  uint32_t,
-  kSet,
-  kClear,
-  kCompress,
-  kInsert,
-  kRemove
-);
-
 
 struct ReflectionChangeNotification
 {

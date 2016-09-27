@@ -3,6 +3,8 @@
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"
 
+#include <StormRefl\StormReflMetaEnum.h>
+
 template <class EnumType>
 class REnum
 {
@@ -24,13 +26,14 @@ public:
     return m_Value;
   }
 
-  const EnumType & operator = (const std::string & val)
+  const EnumType & operator = (const char * val)
   {
-    auto enum_val = EnumType::_from_string_nothrow(val.c_str());
+    auto hash = crc32(val);
+    EnumType out;
 
-    if (enum_val)
+    if (StormReflGetEnumFromHash(out, hash))
     {
-      Set(*enum_val);
+      Set(out);
     }
 
     return m_Value;
@@ -38,7 +41,7 @@ public:
 
   operator int() const
   {
-    return m_Value._to_integral();
+    return (int)m_Value;
   }
 
   operator EnumType() const
@@ -46,14 +49,9 @@ public:
     return m_Value;
   }
 
-  int _to_integral() const
+  czstr ToString() const
   {
-    return m_Value._to_integral();
-  }
-
-  czstr _to_string() const
-  {
-    return m_Value._to_string();
+    return StormReflGetEnumAsString(m_Value);
   }
 
   bool operator == (EnumType val) const
@@ -102,7 +100,7 @@ private:
       return;
     }
 
-    ReflectionNotifySet(m_ReflectionInfo, std::string(_to_string()));
+    ReflectionNotifySet(m_ReflectionInfo, std::string(ToString()));
 #endif
   }
 

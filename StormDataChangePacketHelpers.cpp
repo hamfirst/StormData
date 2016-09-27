@@ -1,6 +1,9 @@
 
 #include "StormDataChangePacketHelpers.h"
 #include "StormDataChangeNotifier.h"
+#include "StormDataChangeType.refl.meta.h"
+
+#include <StormRefl\StormReflMetaEnum.h>
 
 namespace StormDataChangePacketHelpers
 {
@@ -36,11 +39,10 @@ namespace StormDataChangePacketHelpers
     }
 
     type_str[index] = 0;
-    auto val = ReflectionNotifyChangeType::_from_string_nothrow(type_str);
+    auto type_str_hash = crc32(type_str);
 
-    if (val)
+    if (StormReflGetEnumFromHash(type, type_str_hash))
     {
-      type = *val;
       str++;
       result = str;
       return true;

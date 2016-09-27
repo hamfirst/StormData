@@ -105,25 +105,25 @@ struct StormReflJson<REnum<T>, void>
   template <class StringBuilder>
   static void Encode(const REnum<T> & t, StringBuilder & sb)
   {
-    StormReflJson<std::string>::Encode(t._to_string(), sb);
+    StormReflJson<T>::Encode(t, sb);
   }
 
   template <class StringBuilder>
   static void EncodePretty(const REnum<T> & t, StringBuilder & sb, int indent)
   {
-    StormReflJson<std::string>::EncodePretty(t._to_string(), sb, indent);
+    StormReflJson<T>::EncodePretty(t, sb, indent);
   }
 
   static bool Parse(REnum<T> & t, const char * str, const char *& result)
   {
-    std::string val;
-    if (!StormReflJson<std::string>::Parse(val, str, result))
+    T val;
+    if (StormReflJson<T>::Parse(val, str, result))
     {
-      return false;
+      t = val;
+      return true;
     }
 
-    t = val;
-    return true;
+    return false;
   }
 };
 
