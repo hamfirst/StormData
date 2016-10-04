@@ -50,6 +50,8 @@
     <ClInclude Include="StormDataMap.h" />
     <ClInclude Include="StormDataNumber.h" />
     <ClInclude Include="StormDataParent.h" />
+    <ClInclude Include="StormDataPath.h" />
+    <ClInclude Include="StormDataPathHelpers.h" />
     <ClInclude Include="StormDataString.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

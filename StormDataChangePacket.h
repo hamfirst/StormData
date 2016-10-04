@@ -21,19 +21,14 @@ bool StormDataApplyChangePacket(T & t, const char * str)
   {
   case ReflectionNotifyChangeType::kSet:
     return StormDataChangePacketHelpers::StormDataApplySetPacket::Process(t, str);
-    break;
   case ReflectionNotifyChangeType::kClear:
     return StormDataChangePacketHelpers::StormDataApplyClearPacket::Process(t, str);
-    break;
   case ReflectionNotifyChangeType::kCompress:
     return StormDataChangePacketHelpers::StormDataApplyCompressPacket::Process(t, str);
-    break;
   case ReflectionNotifyChangeType::kInsert:
     return StormDataChangePacketHelpers::StormDataApplyInsertPacket::Process(t, str);
-    break;
   case ReflectionNotifyChangeType::kRemove:
     return StormDataChangePacketHelpers::StormDataApplyRemovePacket::Process(t, str);
-    break;
   }
 
   return false;

@@ -21,5 +21,7 @@
     <ClInclude Include="StormDataJsonUtil.h" />
     <ClInclude Include="StormDataChangeType.refl.h" />
     <ClInclude Include="StormDataChangeType.refl.meta.h" />
+    <ClInclude Include="StormDataPath.h" />
+    <ClInclude Include="StormDataPathHelpers.h" />
   </ItemGroup>
 </Project>
