@@ -96,7 +96,7 @@ namespace StormDataPathHelpers
       bool result = false;
       auto field_visitor = [&](auto f)
       {
-        using member_type = decltype(f)::member_type;
+        using member_type = typename decltype(f)::member_type;
         result = StormDataPath<member_type>::VisitPath(f.Get(), callable, str);
       };
 
