@@ -18,19 +18,23 @@ void CreateElementPath(StormReflectionParentInfo * parent_info, ReflectionChange
   if (parent_info->m_ParentInfo)
   {
     CreateElementPath(parent_info->m_ParentInfo, notification);
-  }
 
-  if (parent_info->m_MemberName)
-  {
-    notification.m_Path.push_back('.');
-    notification.m_Path.append(parent_info->m_MemberName);
+    if (parent_info->m_MemberName)
+    {
+      notification.m_Path.push_back('.');
+      notification.m_Path.append(parent_info->m_MemberName);
+    }
+
+    if (parent_info->m_ParentIndex != StormReflectionParentInfo::kInvalidParentIndex)
+    {
+      notification.m_Path.push_back('[');
+      notification.m_Path.append(std::to_string(parent_info->m_ParentIndex));
+      notification.m_Path.push_back(']');
+    }
   }
-  
-  if(parent_info->m_ParentIndex != StormReflectionParentInfo::kInvalidParentIndex)
+  else
   {
-    notification.m_Path.push_back('[');
-    notification.m_Path.append(std::to_string(parent_info->m_ParentIndex));
-    notification.m_Path.push_back(']');
+    notification.m_BaseObject = parent_info->m_MemberName;
   }
 }
 

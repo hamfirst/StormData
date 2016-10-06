@@ -11,6 +11,7 @@ struct ReflectionChangeNotification
 {
   static const uint64_t kInvalidSubIndex = ~0;
 
+  const void * m_BaseObject;
   ReflectionNotifyChangeType m_Type = ReflectionNotifyChangeType::kSet;
   uint64_t m_SubIndex = kInvalidSubIndex;
   std::string m_Path;

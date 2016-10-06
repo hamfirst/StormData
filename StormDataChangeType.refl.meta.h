@@ -54,3 +54,13 @@ struct StormReflEnumInfo<ReflectionNotifyChangeType>::elems<4>
   static constexpr auto GetValue() { return ReflectionNotifyChangeType::kRemove; }
 };
 
+namespace StormReflFileInfo
+{
+  struct StormDataChangeType
+  {
+    static const int types_n = 0;
+    template <int i> struct type_info { using type = void; };
+  };
+
+}
+

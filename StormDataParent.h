@@ -131,6 +131,7 @@ template <typename T, typename std::enable_if<
 void InitializeParentInfo(T & value)
 {
   StormReflectionParentInfo default_info;
+  default_info.m_MemberName = (const char *)&value;
   SetParentInfo(value, default_info);
 }
 
