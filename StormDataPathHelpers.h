@@ -7,6 +7,12 @@ template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
 
+namespace StormDataChangePacketHelpers
+{
+  bool ParseNotifyChangeType(ReflectionNotifyChangeType & type, const char * str, const char *& result);
+  bool ParseIndex(uint32_t & val, const char * str, const char *& result);
+}
+
 namespace StormDataPathHelpers
 {
   template <typename T, typename Enable = void>
@@ -44,7 +50,7 @@ namespace StormDataPathHelpers
 
       str++;
       uint32_t index;
-      if (ParseIndex(index, str, str) == false)
+      if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
       }
@@ -124,7 +130,7 @@ namespace StormDataPathHelpers
 
       str++;
       uint32_t index;
-      if (ParseIndex(index, str, str) == false)
+      if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
       }
@@ -158,7 +164,7 @@ namespace StormDataPathHelpers
 
       str++;
       uint32_t index;
-      if (ParseIndex(index, str, str) == false)
+      if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
       }
@@ -192,7 +198,7 @@ namespace StormDataPathHelpers
 
       str++;
       uint32_t index;
-      if (ParseIndex(index, str, str) == false)
+      if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
       }

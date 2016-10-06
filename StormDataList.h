@@ -13,6 +13,8 @@ class RSparseList
 {
 public:
 
+  using ContainerData = std::experimental::optional<T>;
+
   struct RSparseListIterator
   {
     RSparseListIterator(const RSparseListIterator & rhs) : m_List(rhs.m_List), m_PhysicalIndex(rhs.m_PhysicalIndex) { }
@@ -39,13 +41,13 @@ public:
 
     const std::pair<std::size_t, T &> operator *() const
     {
-      std::pair<std::size_t, T &> val(m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_T);
+      std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
     const std::pair<std::size_t, T &> operator ->() const
     {
-      std::pair<std::size_t, T &> val(m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_T);
+      std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
@@ -54,7 +56,7 @@ public:
       do
       {
         m_PhysicalIndex++;
-      } while (m_PhysicalIndex < m_List->m_Values.size() && m_List->m_Values[m_PhysicalIndex].m_Valid == false);
+      } while (m_PhysicalIndex < m_List->m_Values.size() && ((bool)m_List->m_Values[m_PhysicalIndex]) == false);
     }
 
   private:
@@ -93,13 +95,13 @@ public:
 
     const std::pair<std::size_t, const T &> operator *() const
     {
-      std::pair<std::size_t, const T &> val(m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_T);
+      std::pair<std::size_t, const T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
     const std::pair<std::size_t, T &> operator ->() const
     {
-      std::pair<std::size_t, T &> val(m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_T);
+      std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex].m_T);
       return val;
     }
 
@@ -108,7 +110,7 @@ public:
       do
       {
         m_PhysicalIndex++;
-      } while (m_PhysicalIndex < m_List->m_Values.size() && m_List->m_Values[m_PhysicalIndex].m_Valid == false);
+      } while (m_PhysicalIndex < m_List->m_Values.size() && ((bool)m_List->m_Values[m_PhysicalIndex]) == false);
     }
 
   private:
@@ -123,7 +125,7 @@ public:
 
   T & operator[](std::size_t index)
   {
-    return m_Values[index].m_T;
+    return *m_Values[index];
   }
 
   void Clear()
@@ -159,16 +161,16 @@ public:
     m_HighestIndex = std::max(m_HighestIndex, logical_index);
 
     Inserted(logical_index);
-    return m_Values[logical_index].m_T;
+    return *m_Values[logical_index];
   }
 
   void RemoveAt(std::size_t logical_index)
   {
-    m_Values[logical_index].m_Valid = false;
+    m_Values[logical_index] = ContainerData{};
 
     if (m_HighestIndex == logical_index)
     {
-      for (std::size_t index = m_Values.size() - 1; index >= 0 && m_Values[index].m_Valid == false; index--)
+      for (std::size_t index = m_Values.size() - 1; index >= 0 && ((bool)m_Values[index]) == false; index--)
       {
         m_HighestIndex--;
       }
@@ -194,9 +196,9 @@ public:
 
     for (std::size_t index = 0; index < m_Values.size(); index++)
     {
-      if (m_Values[index].m_Valid)
+      if (m_Values[index])
       {
-        new_vals.push_back(ContainerData(m_Values[index].m_T));
+        new_vals.push_back(ContainerData(m_Values[index]));
       }
     }
 
@@ -207,7 +209,7 @@ public:
   RSparseListIterator begin()
   {
     std::size_t start_index = 0;
-    while (start_index < m_HighestIndex && m_Values[start_index].m_Valid == false)
+    while (start_index < m_HighestIndex && ((bool)m_Values[start_index]) == false)
     {
       start_index++;
     }
@@ -225,7 +227,7 @@ public:
   RSparseListIteratorConst begin() const
   {
     std::size_t start_index = 0;
-    while (start_index < m_HighestIndex && m_Values[start_index].m_Valid == false)
+    while (start_index < m_HighestIndex && ((bool)m_Values[start_index]) == false)
     {
       start_index++;
     }
@@ -268,23 +270,7 @@ public:
   }
 
 private:
-  struct ContainerData
-  {
-    ContainerData()
-      : m_Valid(false)
-    {
 
-    }
-
-    ContainerData(const T & t)
-      : m_T(t), m_Valid(true)
-    {
-      
-    }
-
-    bool m_Valid = false;
-    T m_T;
-  };
 
   void Cleared()
   {
@@ -309,7 +295,7 @@ private:
     for (uint32_t index = 0; index < m_Values.size(); index++)
     {
       new_info.m_ParentIndex = index;
-      SetParentInfo(m_Values[index].m_T, new_info);
+      SetParentInfo(*m_Values[index], new_info);
     }
 
     if (DoReflectionCallback() == false)
@@ -329,7 +315,7 @@ private:
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = nullptr;
     new_info.m_ParentIndex = logical_index;
-    SetParentInfo(m_Values[logical_index].m_T, new_info);
+    SetParentInfo(*m_Values[logical_index], new_info);
 
     if (DoReflectionCallback() == false)
     {
@@ -337,7 +323,7 @@ private:
     }
 
     std::string data;
-    StormReflEncodeJson(m_Values[logical_index].m_T, data);
+    StormReflEncodeJson(*m_Values[logical_index], data);
 
     ReflectionNotifyInsertObject(m_ReflectionInfo, logical_index, data);
 #endif

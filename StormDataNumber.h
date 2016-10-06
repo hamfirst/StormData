@@ -19,11 +19,22 @@ public:
     m_Value = val;
   }
 
+  RBool(const RBool & val) = default;
+  RBool(RBool && val) = default;
+
   bool operator = (bool val)
   {
     Set(val);
     return m_Value;
   }
+
+  RBool & operator = (const RBool & rhs)
+  {
+    Set(rhs.m_Value);
+    return *this;
+  }
+
+  RBool & operator = (RBool && rhs) = default;
 
   operator bool() const
   {
@@ -84,16 +95,22 @@ public:
     m_Value = val;
   }
 
-  RNumber(const RNumber & val)
-  {
-    m_Value = val.m_Value;
-  }
+  RNumber(const RNumber & val) = default;
+  RNumber(RNumber && val) = default;
 
   NumericType operator = (NumericType val)
   {
     Set(val);
     return m_Value;
   }
+
+  RNumber<NumericType> & operator = (const RNumber<NumericType> & rhs)
+  {
+    Set(rhs.m_Value);
+    return *this;
+  }
+
+  RNumber<NumericType> & operator = (RNumber<NumericType> && rhs) = default;
 
   operator NumericType() const
   {

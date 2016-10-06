@@ -14,6 +14,9 @@ public:
 
   }
 
+  RString(const RString & rhs) = default;
+  RString(RString && rhs) = default;
+
   RString(const std::string & val)
   {
     m_Value = val;
@@ -66,6 +69,15 @@ public:
     Modified();
     return m_Value;
   }
+
+  RString & operator = (const RString & val)
+  {
+    m_Value = val.m_Value;
+    Modified();
+    return *this;
+  }
+
+  RString & operator = (RString && val) = default;
 
   bool operator == (const RString & val) const
   {

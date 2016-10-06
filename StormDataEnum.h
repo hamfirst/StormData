@@ -15,6 +15,9 @@ public:
     
   }
 
+  REnum(const REnum & rhs) = default;
+  REnum(REnum && rhs) = default;
+
   REnum(EnumType val)
   {
     m_Value = val;

@@ -125,9 +125,7 @@ void SetParentInfo(RMap<K, T> & value, const StormReflectionParentInfo & info)
 }
 
 // For base level structs, this sets the default info
-template <typename T, typename std::enable_if<
-  std::is_class<T>::value && T::is_reflectable
->::type * = nullptr>
+template <typename T>
 void InitializeParentInfo(T & value)
 {
   StormReflectionParentInfo default_info;
