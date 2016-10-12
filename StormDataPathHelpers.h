@@ -7,6 +7,8 @@ template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
 
+enum ReflectionNotifyChangeType;
+
 namespace StormDataChangePacketHelpers
 {
   bool ParseNotifyChangeType(ReflectionNotifyChangeType & type, const char * str, const char *& result);

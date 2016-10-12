@@ -5,12 +5,12 @@
 
 #include "StormDataChangeNotifier.h"
 
-thread_local std::experimental::optional<std::function<void(const ReflectionChangeNotification &)>> g_NotifyCallback;
+thread_local std::vector<std::function<void(const ReflectionChangeNotification &)>> g_NotifyCallback;
 
 
 bool DoReflectionCallback()
 {
-  return (bool)g_NotifyCallback;
+  return g_NotifyCallback.size() > 0;
 }
 
 void CreateElementPath(StormReflectionParentInfo * parent_info, ReflectionChangeNotification & notification)
@@ -38,14 +38,14 @@ void CreateElementPath(StormReflectionParentInfo * parent_info, ReflectionChange
   }
 }
 
-void ReflectionSetNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func)
+void ReflectionPushNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func)
 {
-  g_NotifyCallback = std::move(func);
+  g_NotifyCallback.emplace_back(std::move(func));
 }
 
-void ReflectionUnsetNotifyCallback()
+void ReflectionPopNotifyCallback()
 {
-  g_NotifyCallback = std::experimental::nullopt;
+  g_NotifyCallback.pop_back();
 }
 
 ReflectionChangeNotification InitChangeNotification(StormReflectionParentInfo * parent_info)
@@ -58,9 +58,9 @@ ReflectionChangeNotification InitChangeNotification(StormReflectionParentInfo * 
 
 void FinishChangeNotification(const ReflectionChangeNotification & notification)
 {
-  if (g_NotifyCallback)
+  if (g_NotifyCallback.size() > 0)
   {
-    (*g_NotifyCallback)(notification);
+    (g_NotifyCallback.back())(notification);
   }
 }
 

@@ -6,6 +6,7 @@
 #include "StormDataChangePacketHelpers.h"
 
 std::string StormDataCreateChangePacket(const ReflectionChangeNotification & notification);
+std::string StormDataCreateChangePacket(ReflectionNotifyChangeType type, uint64_t sub_index, const std::string & path, const std::string & data);
 
 template <class T>
 bool StormDataApplyChangePacket(T & t, const char * str)

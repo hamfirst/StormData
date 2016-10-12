@@ -20,8 +20,8 @@ struct ReflectionChangeNotification
 
 bool DoReflectionCallback();
 
-void ReflectionSetNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func);
-void ReflectionUnsetNotifyCallback();
+void ReflectionPushNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func);
+void ReflectionPopNotifyCallback();
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, bool value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int8_t value);
