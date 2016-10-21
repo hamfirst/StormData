@@ -23,12 +23,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(T & t, Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       return false;
     }
   };
@@ -39,12 +33,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(T(&t)[i], Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       if (*str != '[')
       {
         return false;
@@ -63,7 +51,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return StormDataPath<T>::VisitPath(t[index], callable, str);
+      return callable(t[index], str);
     }
   };
 
@@ -74,12 +62,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(T & t, Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       if (*str != '.')
       {
         return false;
@@ -104,8 +86,7 @@ namespace StormDataPathHelpers
       bool result = false;
       auto field_visitor = [&](auto f)
       {
-        using member_type = typename decltype(f)::member_type;
-        result = StormDataPath<member_type>::VisitPath(f.Get(), callable, str);
+        result = callable(f.Get(), str);
       };
 
       StormReflVisitField(t, field_visitor, field_name_hash);
@@ -119,12 +100,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(RSparseList<T> & t, Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       if (*str != '[')
       {
         return false;
@@ -143,7 +118,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return StormDataPath<T>::VisitPath(t[index], callable, str);
+      return callable(t[index], str);
     }
   };
 
@@ -153,12 +128,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(RMergeList<T> & t, Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       if (*str != '[')
       {
         return false;
@@ -177,7 +146,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return StormDataPath<T>::VisitPath(t[index], callable, str);
+      return callable(t[index], str);
     }
   };
 
@@ -187,12 +156,6 @@ namespace StormDataPathHelpers
     template <typename Callable>
     static bool VisitPath(RMap<K, T> & t, Callable & callable, const char * str)
     {
-      if (*str == ' ' || *str == 0)
-      {
-        str++;
-        return callable(t, str);
-      }
-
       if (*str != '[')
       {
         return false;
@@ -211,7 +174,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return StormDataPath<T>::VisitPath(t[index], callable, str);
+      return callable(t[index], str);
     }
   };
 }

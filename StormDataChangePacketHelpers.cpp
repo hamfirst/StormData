@@ -51,14 +51,14 @@ namespace StormDataChangePacketHelpers
     return false;
   }
 
-  bool ParseIndex(uint32_t & val, const char * str, const char *& result)
+  bool ParseIndex(uint64_t & val, const char * str, const char *& result)
   {
     if (*str < '0' || *str > '9')
     {
       return false;
     }
 
-    uint32_t index = *str - '0';
+    uint64_t index = *str - '0';
     while (true)
     {
       str++;

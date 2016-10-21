@@ -21,6 +21,7 @@ struct ReflectionChangeNotification
 bool DoReflectionCallback();
 
 void ReflectionPushNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func);
+void ReflectionPushNotifyEmptyCallback();
 void ReflectionPopNotifyCallback();
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, bool value);
