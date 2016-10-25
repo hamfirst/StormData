@@ -320,3 +320,5 @@ private:
   NumericType m_Value;
   STORM_CHANGE_NOTIFIER_INFO;
 };
+
+using RInt = RNumber<int>;

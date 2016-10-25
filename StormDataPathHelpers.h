@@ -12,7 +12,7 @@ enum ReflectionNotifyChangeType;
 namespace StormDataChangePacketHelpers
 {
   bool ParseNotifyChangeType(ReflectionNotifyChangeType & type, const char * str, const char *& result);
-  bool ParseIndex(uint32_t & val, const char * str, const char *& result);
+  bool ParseIndex(uint64_t & val, const char * str, const char *& result);
 }
 
 namespace StormDataPathHelpers
@@ -106,7 +106,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      uint32_t index;
+      uint64_t index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
@@ -118,7 +118,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[index], str);
+      return callable(t[(int)index], str);
     }
   };
 
@@ -134,7 +134,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      uint32_t index;
+      uint64_t index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
@@ -146,7 +146,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[index], str);
+      return callable(t[(int)index], str);
     }
   };
 
@@ -162,7 +162,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      uint32_t index;
+      uint64_t index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
@@ -174,7 +174,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[index], str);
+      return callable(t[(int)index], str);
     }
   };
 }

@@ -2,7 +2,12 @@
 
 #include "StormData.h"
 
+#include <StormRefl\StormReflMetaFuncs.h>
+
 #ifdef STORM_CHANGE_NOTIFIER
+
+class RBool;
+class RString;
 
 template <typename T> class RNumber;
 template <typename T> class REnum;
@@ -10,118 +15,149 @@ template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
 
-static void SetParentInfo(RBool & value, const StormReflectionParentInfo & info)
+template <typename T, typename Enable = void>
+struct SetParentInfoStruct
 {
-  value.m_ReflectionInfo = info;
-}
+  void operator()(T & t, const StormReflectionParentInfo & info)
+  {
+
+  }
+};
+
+template <>
+struct SetParentInfoStruct<RBool>
+{
+  void operator()(RBool & value, const StormReflectionParentInfo & info)
+  {
+    value.m_ReflectionInfo = info;
+  }
+};
 
 template <typename NumericType>
-void SetParentInfo(RNumber<NumericType> & value, const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<RNumber<NumericType>>
 {
-  value.m_ReflectionInfo = info;
-}
-
-static void SetParentInfo(RString & value, const StormReflectionParentInfo & info)
-{
-  value.m_ReflectionInfo = info;
-}
-
-template <typename T, typename std::enable_if_t<StormReflCheckReflectable<T>::value> * Enable = nullptr>
-void SetParentInfo(T & value, const StormReflectionParentInfo & info)
-{
-  value.m_ReflectionInfo = info;
-
-  StormReflectionParentInfo new_info;
-  new_info.m_ParentInfo = &value.m_ReflectionInfo;
-
-  auto parent_setter = [&](auto f)
+  void operator()(RNumber<NumericType> & value, const StormReflectionParentInfo & info)
   {
-    using member_type = decltype(f)::member_type;
-    member_type & elem = f.Get();
+    value.m_ReflectionInfo = info;
+  }
+};
 
-    new_info.m_MemberName = f.GetName();
-    SetParentInfo(elem, new_info);
-  };
+template <>
+struct SetParentInfoStruct<RString>
+{
+  void operator()(RString & value, const StormReflectionParentInfo & info)
+  {
+    value.m_ReflectionInfo = info;
+  }
+};
 
-  StormReflVisitEach(value, parent_setter);
-}
+template <typename T>
+struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectable<T>::value>>
+{
+  void operator()(T & value, const StormReflectionParentInfo & info)
+  {
+    value.m_ReflectionInfo = info;
+
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &value.m_ReflectionInfo;
+
+    auto parent_setter = [&](auto f)
+    {
+      using member_type = decltype(f)::member_type;
+      member_type & elem = f.Get();
+
+      new_info.m_MemberName = f.GetName();
+      SetParentInfo(elem, new_info);
+    };
+
+    StormReflVisitEach(value, parent_setter);
+  }
+};
 
 template <typename T, int i>
-void SetParentInfo(T (&value)[i], const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<T[i]>
 {
-  StormReflectionParentInfo new_info;
-  new_info.m_ParentInfo = info.m_ParentInfo;
-  new_info.m_MemberName = info.m_MemberName;
-
-  for (int index = 0; index < i; index++)
+  void operator()(T(&value)[i], const StormReflectionParentInfo & info)
   {
-    new_info.m_ParentIndex = index;
-    SetParentInfo(value[index], new_info);
-  }
-}
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = info.m_ParentInfo;
+    new_info.m_MemberName = info.m_MemberName;
 
-//template <class T>
-//void SetParentInfo(RPolymorphic<T> & value, const StormReflectionParentInfo & info)
-//{
-//  value.m_ReflectionInfo = info;
-//
-//  StormReflectionParentInfo new_info;
-//  new_info.m_ParentInfo = &value.m_ReflectionInfo;
-//  new_info.m_ParentIndex = 0;
-//  new_info.m_ParentType = 0xFFFFFFFF;
-//
-//  SetParentInfo(value.GetValue(), value.GetTypeNameHash(), new_info);
-//}
+    for (int index = 0; index < i; index++)
+    {
+      new_info.m_ParentIndex = index;
+      SetParentInfo(value[index], new_info);
+    }
+  }
+};
 
 template <class EnumType>
-void SetParentInfo(REnum<EnumType> & value, const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<REnum<EnumType>>
 {
-  value.m_ReflectionInfo = info;
-}
+  void operator()(REnum<EnumType> & value, const StormReflectionParentInfo & info)
+  {
+    value.m_ReflectionInfo = info;
+  }
+};
 
 template <class T>
-void SetParentInfo(RSparseList<T> & value, const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<RSparseList<T>>
 {
-  value.m_ReflectionInfo = info;
-
-  StormReflectionParentInfo new_info;
-  new_info.m_ParentInfo = &value.m_ReflectionInfo;
-
-  for (auto t : value)
+  void operator()(RSparseList<T> & value, const StormReflectionParentInfo & info)
   {
-    new_info.m_ParentIndex = t.first;
-    SetParentInfo(t.second, new_info);
+    value.m_ReflectionInfo = info;
+
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &value.m_ReflectionInfo;
+
+    for (auto t : value)
+    {
+      new_info.m_ParentIndex = t.first;
+      SetParentInfo(t.second, new_info);
+    }
   }
-}
+};
 
 template <class T>
-void SetParentInfo(RMergeList<T> & value, const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<RMergeList<T>>
 {
-  value.m_ReflectionInfo = info;
-
-  StormReflectionParentInfo new_info;
-  new_info.m_ParentInfo = &value.m_ReflectionInfo;
-
-  for (auto t : value)
+  void operator()(RMergeList<T> & value, const StormReflectionParentInfo & info)
   {
-    new_info.m_ParentIndex = t.first;
-    SetParentInfo(t.second, new_info);
+    value.m_ReflectionInfo = info;
+
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &value.m_ReflectionInfo;
+
+    for (auto t : value)
+    {
+      new_info.m_ParentIndex = t.first;
+      SetParentInfo(t.second, new_info);
+    }
   }
-}
+};
 
 template <class K, class T>
-void SetParentInfo(RMap<K, T> & value, const StormReflectionParentInfo & info)
+struct SetParentInfoStruct<RMap<K, T>>
 {
-  value.m_ReflectionInfo = info;
-
-  StormReflectionParentInfo new_info;
-  new_info.m_ParentInfo = &value.m_ReflectionInfo;
-
-  for (auto t : value)
+  void operator()(RMap<K, T> & value, const StormReflectionParentInfo & info)
   {
-    new_info.m_ParentIndex = t.first;
-    SetParentInfo(t.second, new_info);
+    value.m_ReflectionInfo = info;
+
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &value.m_ReflectionInfo;
+
+    for (auto t : value)
+    {
+      new_info.m_ParentIndex = t.first;
+      SetParentInfo(t.second, new_info);
+    }
   }
+};
+
+template <typename T>
+void SetParentInfo(T & t, const StormReflectionParentInfo & info)
+{
+  SetParentInfoStruct<T>{}(t, info);
 }
 
 // For base level structs, this sets the default info
