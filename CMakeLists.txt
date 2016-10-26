@@ -7,7 +7,7 @@ add_definitions(-DUSE_MBED -D_LINUX)
 set(CMAKE_CXX_STANDARD 14)
 
 
-add_library(StormSockets STATIC
+add_library(StormData STATIC
             StormDataChangeNotifier.cpp  
             StormDataChangePacket.cpp  
             StormDataChangePacketHelpers.cpp  

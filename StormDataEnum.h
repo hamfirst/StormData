@@ -5,6 +5,8 @@
 
 #include <StormRefl/StormReflMetaEnum.h>
 
+#include <hash/Hash.h>
+
 template <class EnumType>
 class REnum
 {
