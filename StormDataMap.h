@@ -11,8 +11,8 @@ template <class K, class T>
 class RMap
 {
 public:
-  template <class T>
-  using Optional = std::experimental::optional<T>;
+  template <class O>
+  using Optional = std::experimental::optional<O>;
 
   bool operator == (const RMap<K, T> & rhs) const
   {

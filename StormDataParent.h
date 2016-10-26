@@ -63,7 +63,7 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
 
     auto parent_setter = [&](auto f)
     {
-      using member_type = decltype(f)::member_type;
+      using member_type = typename decltype(f)::member_type;
       member_type & elem = f.Get();
 
       new_info.m_MemberName = f.GetName();

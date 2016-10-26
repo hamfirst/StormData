@@ -39,7 +39,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      uint32_t index;
+      uint64_t index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;

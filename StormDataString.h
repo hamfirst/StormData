@@ -388,12 +388,12 @@ public:
     return m_Value;
   }
 
-  const std::string & insert(std::string::const_iterator pos, std::initializer_list<char> val)
-  {
-    m_Value.insert(pos, val);
-    Modified();
-    return m_Value;
-  }
+  //const std::string & insert(std::string::const_iterator pos, std::initializer_list<char> val)
+  //{
+  //  m_Value.insert(pos, val);
+  //  Modified();
+  //  return m_Value;
+  //}
 
   const std::string & erase(size_t pos = 0, size_t len = std::string::npos)
   {

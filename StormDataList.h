@@ -244,7 +244,7 @@ public:
 
   bool operator == (const RSparseList<T> & rhs) const
   {
-    if (m_Indices.size() != rhs.m_Indices.size())
+    if (m_Values.size() != rhs.m_Values.size())
     {
       return false;
     }

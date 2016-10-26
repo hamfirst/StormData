@@ -182,7 +182,7 @@ namespace StormDataChangePacketHelpers
     template <typename T>
     bool operator()(T & t, const char * result)
     {
-      uint32_t index;
+      uint64_t index;
       if (ParseIndex(index, result, result) == false)
       {
         return false;
