@@ -117,7 +117,7 @@ const char * StormDataFindJsonStartByPath(const char * path, const char * docume
     {
       while (index > 0)
       {
-        *document++;
+        document++;
         StormReflJsonAdvanceWhiteSpace(document);
         if (StormReflJsonParseOverValue(document, document) == false)
         {
@@ -133,7 +133,7 @@ const char * StormDataFindJsonStartByPath(const char * path, const char * docume
         index--;
       }
 
-      *document++;
+      document++;
       return StormDataFindJsonStartByPath(path, document);
     }
     else if (*document == '{')
