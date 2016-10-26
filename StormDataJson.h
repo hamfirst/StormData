@@ -1,7 +1,7 @@
 #pragma once
 
-#include <StormRefl\StormReflJson.h>
-#include <StormRefl\StormReflJsonStd.h>
+#include <StormRefl/StormReflJson.h>
+#include <StormRefl/StormReflJsonStd.h>
 
 #include "StormDataNumber.h"
 #include "StormDataString.h"

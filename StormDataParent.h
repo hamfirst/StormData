@@ -2,7 +2,7 @@
 
 #include "StormData.h"
 
-#include <StormRefl\StormReflMetaFuncs.h>
+#include <StormRefl/StormReflMetaFuncs.h>
 
 #ifdef STORM_CHANGE_NOTIFIER
 

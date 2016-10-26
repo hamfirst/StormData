@@ -2,7 +2,7 @@
 #include "StormDataChangePacket.h"
 #include "StormDataChangeType.refl.meta.h"
 
-#include <StormRefl\StormReflMetaEnum.h>
+#include <StormRefl/StormReflMetaEnum.h>
 
 std::string StormDataCreateChangePacket(const ReflectionChangeNotification & notification)
 {

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <sb\cstr.h>
+#include <sb/cstr.h>
 
-#include <StormRefl\StormRefl.h>
+#include <StormRefl/StormRefl.h>
 
 struct StormReflectionParentInfo
 {

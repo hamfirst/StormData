@@ -2,7 +2,7 @@
 
 #include <vector>
 
-#include <optional\optional.hpp>
+#include <optional/optional.hpp>
 
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"

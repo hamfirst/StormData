@@ -1,7 +1,7 @@
 #pragma once
 
-#include <hash\Hash.h>
-#include <StormRefl\StormReflMetaFuncs.h>
+#include <hash/Hash.h>
+#include <StormRefl/StormReflMetaFuncs.h>
 
 template <typename T> class RSparseList;
 template <typename T> class RMergeList;

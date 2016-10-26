@@ -3,7 +3,7 @@
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"
 
-#include <StormRefl\StormReflMetaEnum.h>
+#include <StormRefl/StormReflMetaEnum.h>
 
 template <class EnumType>
 class REnum

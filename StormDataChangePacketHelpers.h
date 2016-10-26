@@ -1,8 +1,8 @@
 #pragma once
 
-#include <StormRefl\StormReflMetaFuncs.h>
+#include <StormRefl/StormReflMetaFuncs.h>
 
-#include <hash\Hash.h>
+#include <hash/Hash.h>
 
 #include "StormDataJson.h"
 #include "StormDataPath.h"
