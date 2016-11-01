@@ -53,7 +53,7 @@ public:
 
   T & Set(const K & k, T && t)
   {
-    auto & result = m_Values.insert_or_assign(k, t);
+    auto result = m_Values.insert_or_assign(k, t);
     if (result.second)
     {
       Inserted(k, result.first->second);
@@ -134,7 +134,7 @@ private:
 #endif
   }
 
-  void Inserted(std::size_t key, T & value)
+  void Inserted(uint64_t key, T & value)
   {
 #ifdef STORM_CHANGE_NOTIFIER
 

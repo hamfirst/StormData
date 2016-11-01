@@ -26,6 +26,7 @@
     </ClCompile>
     <ClCompile Include="StormDataChangePacketHelpers.cpp" />
     <ClCompile Include="StormDataJsonUtil.cpp" />
+    <ClCompile Include="StormDataPath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StormData.h" />
@@ -53,6 +54,7 @@
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
     <ClInclude Include="StormDataString.h" />
+    <ClInclude Include="StormDataTypes.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CBEDCF5B-D149-46B4-B83C-7363CEB0B455}</ProjectGuid>

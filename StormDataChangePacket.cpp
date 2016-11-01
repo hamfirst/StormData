@@ -45,3 +45,101 @@ std::string StormDataCreateChangePacket(ReflectionNotifyChangeType type, uint64_
 
   return change_packet;
 }
+
+bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data)
+{
+  return StormDataParseChangePacket(notification, data, data);
+}
+
+bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data, const char *& result)
+{
+  ReflectionNotifyChangeType type;
+
+  if (StormDataChangePacketHelpers::ParseNotifyChangeType(type, data, data) == false)
+  {
+    return false;
+  }
+
+  notification.m_Type = type;
+
+  while (*data != ' ' && *data != 0)
+  {
+    notification.m_Path += *data;
+    data++;
+  }
+
+  const char * start_data;
+  uint64_t index;
+
+  switch (type)
+  {
+  case kSet:
+    if (*data == 0)
+    {
+      return false;
+    }
+
+    *data++;
+    start_data = data;
+    if (StormReflJsonParseOverValue(data, data) == false)
+    {
+      return false;
+    }
+
+    notification.m_Data = std::string(start_data, data);
+    return true;
+  case kClear:
+  case kCompress:
+    if (*data != 0)
+    {
+      return false;
+    }
+
+    return true;
+  case kInsert:
+    if (*data == 0)
+    {
+      return false;
+    }
+
+    data++;
+    if (StormReflParseJson(index, data, data) == false)
+    {
+      return false;
+    }
+
+    notification.m_SubIndex = index;
+
+    if (*data != ' ')
+    {
+      return false;
+    }
+    data++;
+
+    start_data = data;
+    if (StormReflJsonParseOverValue(data, data) == false)
+    {
+      return false;
+    }
+
+    notification.m_Data = std::string(start_data, data);
+    return true;
+  case kRemove:
+    if (*data == 0)
+    {
+      return false;
+    }
+
+    data++;
+    if (StormReflParseJson(index, data, data) == false)
+    {
+      return false;
+    }
+
+    notification.m_SubIndex = index;
+    return true;
+  }
+
+  return false;
+}
+

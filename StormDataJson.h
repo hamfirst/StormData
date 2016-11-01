@@ -281,7 +281,7 @@ struct StormReflJson<RMergeList<T>, void>
       return;
     }
 
-    auto & elem = *itr;
+    auto elem = *itr;
     sb += "{\"";
     sb += std::to_string(elem.first);
     sb += "\":";
@@ -290,7 +290,7 @@ struct StormReflJson<RMergeList<T>, void>
 
     while (itr != t.end())
     {
-      auto & elem = *itr;
+      auto elem = *itr;
       sb += ",\"";
       sb += std::to_string(elem.first);
       sb += "\":";
@@ -311,7 +311,7 @@ struct StormReflJson<RMergeList<T>, void>
       return;
     }
 
-    auto & elem = *itr;
+    auto elem = *itr;
     sb += "{\n";
     StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
 
@@ -323,7 +323,7 @@ struct StormReflJson<RMergeList<T>, void>
 
     while (itr != t.end())
     {
-      auto & elem = *itr;
+      auto elem = *itr;
       sb += ",\n";
       StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
       sb += '\"';

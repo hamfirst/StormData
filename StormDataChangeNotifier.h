@@ -11,7 +11,7 @@ struct ReflectionChangeNotification
 {
   static const uint64_t kInvalidSubIndex = ~0;
 
-  const void * m_BaseObject;
+  const void * m_BaseObject = nullptr;
   ReflectionNotifyChangeType m_Type = ReflectionNotifyChangeType::kSet;
   uint64_t m_SubIndex = kInvalidSubIndex;
   std::string m_Path;
@@ -39,7 +39,7 @@ void ReflectionNotifySet(StormReflectionParentInfo & parent_info, const std::str
 void ReflectionNotifyClearObject(StormReflectionParentInfo & parent_info);
 void ReflectionNotifyCompress(StormReflectionParentInfo & parent_info);
 
-void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, std::size_t index, const std::string & data);
-void ReflectionNotifyRemoveObject(StormReflectionParentInfo & parent_info, std::size_t index);
+void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, uint64_t index, const std::string & data);
+void ReflectionNotifyRemoveObject(StormReflectionParentInfo & parent_info, uint64_t index);
 
 #endif

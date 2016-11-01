@@ -8,6 +8,9 @@
 std::string StormDataCreateChangePacket(const ReflectionChangeNotification & notification);
 std::string StormDataCreateChangePacket(ReflectionNotifyChangeType type, uint64_t sub_index, const std::string & path, const std::string & data);
 
+bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data);
+bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data, const char *& result);
+
 template <class T>
 bool StormDataApplyChangePacketSet(T & t, const char * path, const char * data)
 {
@@ -169,4 +172,10 @@ bool StormDataApplyChangePacket(T & t, ReflectionNotifyChangeType type, const ch
   }
 
   return false;
+}
+
+template <class T>
+bool StormDataApplyChangePacket(T & t, const ReflectionChangeNotification & notification)
+{
+  return StormDataApplyChangePacket(t, notification.m_Type, notification.m_Path.data(), notification.m_SubIndex, notification.m_Data.data());
 }

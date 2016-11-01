@@ -160,7 +160,7 @@ void ReflectionNotifyCompress(StormReflectionParentInfo & parent_info)
   FinishChangeNotification(notification);
 }
 
-void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, std::size_t index, const std::string & data)
+void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, uint64_t index, const std::string & data)
 {
   ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
   notification.m_Type = ReflectionNotifyChangeType::kInsert;
@@ -169,7 +169,7 @@ void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, std::
   FinishChangeNotification(notification);
 }
 
-void ReflectionNotifyRemoveObject(StormReflectionParentInfo & parent_info, std::size_t index)
+void ReflectionNotifyRemoveObject(StormReflectionParentInfo & parent_info, uint64_t index)
 {
   ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
   notification.m_Type = ReflectionNotifyChangeType::kRemove;

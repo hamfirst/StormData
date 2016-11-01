@@ -5,6 +5,7 @@
     <ClCompile Include="StormDataChangePacket.cpp" />
     <ClCompile Include="StormDataChangePacketHelpers.cpp" />
     <ClCompile Include="StormDataJsonUtil.cpp" />
+    <ClCompile Include="StormDataPath.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="StormDataChangeNotifier.h" />
@@ -23,5 +24,6 @@
     <ClInclude Include="StormDataChangeType.refl.meta.h" />
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
+    <ClInclude Include="StormDataTypes.h" />
   </ItemGroup>
 </Project>

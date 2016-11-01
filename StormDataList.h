@@ -8,6 +8,28 @@
 #include "StormDataChangeNotifier.h"
 #include "StormDataParent.h"
 
+namespace StormDataHelpers
+{
+  template <class A, class B> struct RTempPair
+  {
+    RTempPair(std::pair<A, B> && pair_data) :
+      m_Data(pair_data)
+    {
+
+    }
+
+    RTempPair(RTempPair && rhs) = default;
+
+    std::pair<A, B> * operator ->()
+    {
+      return &m_Data;
+    }
+
+  private:
+    std::pair<A, B> m_Data;
+  };
+}
+
 template <class T>
 class RSparseList
 {
@@ -39,13 +61,13 @@ public:
       return m_PhysicalIndex == rhs.m_PhysicalIndex;
     }
 
-    const std::pair<std::size_t, T &> operator *() const
+    std::pair<std::size_t, T &> operator *() const
     {
       std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
-    const std::pair<std::size_t, T &> operator ->() const
+    std::pair<std::size_t, T &> operator ->() const
     {
       std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
@@ -93,13 +115,13 @@ public:
       return m_PhysicalIndex == rhs.m_PhysicalIndex;
     }
 
-    const std::pair<std::size_t, const T &> operator *() const
+    std::pair<std::size_t, const T &> operator *() const
     {
       std::pair<std::size_t, const T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
-    const std::pair<std::size_t, T &> operator ->() const
+    std::pair<std::size_t, T &> operator ->() const
     {
       std::pair<std::size_t, T &> val(m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex].m_T);
       return val;
@@ -162,6 +184,16 @@ public:
 
     Inserted(logical_index);
     return *m_Values[logical_index];
+  }
+
+  void Remove(const RSparseListIterator & itr)
+  {
+    RemoveAt(itr.m_PhysicalIndex);
+  }
+
+  void Remove(const RSparseListIteratorConst & itr)
+  {
+    RemoveAt(itr.m_PhysicalIndex);
   }
 
   void RemoveAt(std::size_t logical_index)
@@ -375,16 +407,15 @@ public:
       return m_PhysicalIndex != rhs.m_PhysicalIndex;
     }
 
-    const std::pair<int, T &> operator *() const
+    std::pair<int, T &> operator *() const
     {
       std::pair<int, T &> val(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
-    const std::pair<int, T &> operator ->() const
+    StormDataHelpers::RTempPair<int, T &> operator ->() const
     {
-      std::pair<int, T &> val(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
-      return val;
+      return StormDataHelpers::RTempPair<int, T &>(std::pair<int, T &>{m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex]});
     }
 
     RMergeListIterator & operator++()
@@ -427,16 +458,15 @@ public:
       return m_PhysicalIndex != rhs.m_PhysicalIndex;
     }
 
-    const std::pair<int, const T &> operator *() const
+    std::pair<int, const T &> operator *() const
     {
       std::pair<int, const T &> val(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
       return val;
     }
 
-    const std::pair<int, T &> operator ->() const
+    StormDataHelpers::RTempPair<int, const T &> operator ->() const
     {
-      std::pair<int, T &> val(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
-      return val;
+      return StormDataHelpers::RTempPair<int, const T &>(std::pair<int, T &>{m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex]});
     }
 
     RMergeListIteratorConst & operator++()
@@ -517,6 +547,28 @@ public:
     }
 
     return m_Values[0];
+  }
+
+  void Remove(const RMergeListIterator & itr)
+  {
+    size_t physical_index = itr.m_PhysicalIndex;
+    size_t logical_index = m_Indices[physical_index];
+
+    m_Indices.erase(m_Indices.begin() + physical_index);
+    m_Values.erase(m_Values.begin() + physical_index);
+
+    Removed(logical_index);
+  }
+
+  void Remove(const RMergeListIteratorConst & itr)
+  {
+    size_t physical_index = itr.m_PhysicalIndex;
+    size_t logical_index = m_Indices[physical_index];
+
+    m_Indices.erase(m_Indices.begin() + physical_index);
+    m_Values.erase(m_Values.begin() + physical_index);
+
+    Removed(logical_index);
   }
 
   void RemoveAt(std::size_t logical_index)
@@ -650,7 +702,7 @@ private:
     new_info.m_ParentIndex = logical_index;
     new_info.m_MemberName = nullptr;
 
-    SetParentInfo(m_Values[logical_index], new_info);
+    SetParentInfo(m_Values[physical_index], new_info);
 
     if (DoReflectionCallback() == false)
     {

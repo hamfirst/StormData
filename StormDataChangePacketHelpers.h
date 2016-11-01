@@ -121,7 +121,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMergeList<T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.InsertAt(T{}, index);
+      auto & elem = t.InsertAt(T{}, (std::size_t)index);
       return StormReflJson<T>::Parse(elem, data_str, data_str);
     }
 
@@ -133,7 +133,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMap<K, T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.Set(index, T{});
+      auto & elem = t.Set((std::size_t)index, T{});
       return StormReflJson<T>::Parse(elem, data_str, data_str);
     }
   };
@@ -162,7 +162,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMergeList<T> & t, uint64_t index)
     {
-      t.RemoveAt(index);
+      t.RemoveAt((std::size_t)index);
       return true;
     }
   };
@@ -172,7 +172,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMap<K, T> & t, uint64_t index)
     {
-      t.Remove(index);
+      t.Remove((std::size_t)index);
       return true;
     }
   };
