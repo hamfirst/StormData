@@ -42,6 +42,11 @@ public:
     return m_Value;
   }
 
+  const std::string & ToString() const
+  {
+    return m_Value;
+  }
+
   const std::string & operator = (const std::string & val)
   {
     m_Value = val;
