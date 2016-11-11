@@ -48,7 +48,7 @@ std::string StormDataConvertPahtComponentList(const std::vector<StormDataPathCom
 
 inline bool StormDataParsePath(const char * path, const char * pattern)
 {
-  StormDataMatchPathPartial(path, pattern);
+  return StormDataMatchPathPartial(path, pattern);
 }
 
 template <typename ... Args>
@@ -70,7 +70,7 @@ bool StormDataParsePath(const char * path, const char * pattern, uint64_t * inde
 
       path++;
       pattern++;
-      while (*path != 0 && *path != '.' && *path != '[' && path != ']')
+      while (*path != 0 && *path != '.' && *path != '[' && *path != ']')
       {
         if (*path != *pattern)
         {

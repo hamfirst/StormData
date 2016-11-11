@@ -79,7 +79,7 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
       return false;
     }
 
-    *data++;
+    data++;
     start_data = data;
     if (StormReflJsonParseOverValue(data, data) == false)
     {
