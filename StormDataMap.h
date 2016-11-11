@@ -53,10 +53,14 @@ public:
 
   T & Set(const K & k, T && t)
   {
-    auto result = m_Values.insert_or_assign(k, t);
+    auto result = m_Values.emplace(std::make_pair(k, t));
     if (result.second)
     {
       Inserted(k, result.first->second);
+    }
+    else
+    {
+      Modified(k, result.first->second);
     }
 
     return result.first->second;
@@ -134,6 +138,22 @@ private:
 #endif
   }
 
+  void Modified(uint64_t key, T & value)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+
+    if (DoReflectionCallback() == false)
+    {
+      return;
+    }
+
+    std::string data;
+    StormReflEncodeJson(value, data);
+
+    ReflectionNotifySet(value.m_ReflectionInfo, data);
+#endif
+  }
+
   void Inserted(uint64_t key, T & value)
   {
 #ifdef STORM_CHANGE_NOTIFIER
@@ -167,6 +187,8 @@ private:
     ReflectionNotifyRemoveObject(m_ReflectionInfo, logical_index);
 #endif
   }
+
+
 
   std::unordered_map<K, T> m_Values;
   STORM_CHANGE_NOTIFIER_INFO;
