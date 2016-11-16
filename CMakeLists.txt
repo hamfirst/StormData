@@ -11,7 +11,8 @@ add_library(StormData STATIC
             StormDataChangeNotifier.cpp  
             StormDataChangePacket.cpp  
             StormDataChangePacketHelpers.cpp  
-            StormDataJsonUtil.cpp)
+            StormDataJsonUtil.cpp
+            StormDataPath.cpp)
 
 
 
