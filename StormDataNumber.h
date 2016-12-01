@@ -9,18 +9,29 @@ class RBool
 {
 public:
 
-  RBool()
+  RBool() :
+    m_Value(false)
   {
-    m_Value = false;
   }
 
-  RBool(bool val)
+  RBool(bool val) :
+    m_Value(val)
   {
-    m_Value = val;
   }
 
-  RBool(const RBool & val) = default;
-  RBool(RBool && val) = default;
+  RBool(const RBool & val) :
+    m_Value(val.m_Value)
+  {
+  }
+
+  RBool(RBool && val) :
+    m_Value(val.m_Value)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    val.m_ReflectionInfo = {};
+#endif
+  }
 
   bool operator = (bool val)
   {
@@ -34,7 +45,11 @@ public:
     return *this;
   }
 
-  RBool & operator = (RBool && rhs) = default;
+  RBool & operator = (RBool && rhs)
+  {
+    Set(rhs.m_Value);
+    return *this;
+  }
 
   operator bool() const
   {
@@ -67,7 +82,7 @@ private:
     m_Value = val;
 
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }
@@ -85,41 +100,51 @@ class RNumber
 {
 public:
 
-  RNumber()
+  RNumber() noexcept :
+    m_Value(0)
   {
-    m_Value = 0;
   }
 
-  RNumber(NumericType val)
+  RNumber(NumericType val) noexcept :
+    m_Value(val)
   {
-    m_Value = val;
   }
 
-  RNumber(const RNumber & val) = default;
-  RNumber(RNumber && val) = default;
+  RNumber(const RNumber & val) noexcept :
+    m_Value(val.m_Value)
+  {
+  }
 
-  NumericType operator = (NumericType val)
+  RNumber(RNumber && val) noexcept :
+    m_Value(val.m_Value)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    val.m_ReflectionInfo = {};
+#endif
+  }
+
+  NumericType operator = (NumericType val) noexcept
   {
     Set(val);
     return m_Value;
   }
 
-  RNumber<NumericType> & operator = (const RNumber<NumericType> & rhs)
+  RNumber<NumericType> & operator = (const RNumber<NumericType> & rhs) noexcept
   {
     Set(rhs.m_Value);
     return *this;
   }
 
-  RNumber<NumericType> & operator = (RNumber<NumericType> && rhs) = default;
+  RNumber<NumericType> & operator = (RNumber<NumericType> && rhs) noexcept
+  {
+    Set(rhs.m_Value);
+    return *this;
+  }
 
   operator NumericType() const
   {
     return m_Value;
-  }
-
-  operator bool () const
-  {
-    return m_Value != 0;
   }
 
   float AsFloat() const
@@ -149,9 +174,20 @@ public:
     return m_Value + val;
   }
 
+  NumericType operator + (RNumber<NumericType> val) const
+  {
+    return m_Value + val.m_Value;
+  }
+
   NumericType operator += (NumericType val)
   {
     Set(m_Value + val);
+    return m_Value;
+  }
+
+  NumericType operator += (RNumber<NumericType> val)
+  {
+    Set(m_Value + val.m_Value);
     return m_Value;
   }
 
@@ -160,9 +196,20 @@ public:
     return m_Value - val;
   }
 
+  NumericType operator - (RNumber<NumericType> val) const
+  {
+    return m_Value - val.m_Value;
+  }
+
   NumericType operator -= (NumericType val)
   {
     Set(m_Value - val);
+    return m_Value;
+  }
+
+  NumericType operator -= (RNumber<NumericType> val)
+  {
+    Set(m_Value - val.m_Value);
     return m_Value;
   }
 
@@ -171,9 +218,20 @@ public:
     return m_Value * val;
   }
 
+  NumericType operator * (RNumber<NumericType> val) const
+  {
+    return m_Value * val.m_Value;
+  }
+
   NumericType operator *= (NumericType val)
   {
     Set(m_Value * val);
+    return m_Value;
+  }
+
+  NumericType operator *= (RNumber<NumericType> val)
+  {
+    Set(m_Value * val.m_Value);
     return m_Value;
   }
 
@@ -182,9 +240,72 @@ public:
     return m_Value / val;
   }
 
+  NumericType operator / (RNumber<NumericType> val) const
+  {
+    return m_Value / val.m_Value;
+  }
+
   NumericType operator /= (NumericType val)
   {
     Set(m_Value / val);
+    return m_Value;
+  }
+
+  NumericType operator /= (RNumber<NumericType> val)
+  {
+    Set(m_Value / val.m_Value);
+    return m_Value;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  auto operator + (RhsType val) const
+  {
+    return m_Value + val;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  NumericType operator += (RhsType val)
+  {
+    Set((NumericType)(m_Value + val));
+    return m_Value;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  auto operator - (RhsType val) const
+  {
+    return m_Value - val;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  NumericType operator -= (RhsType val)
+  {
+    Set((NumericType)(m_Value - val));
+    return m_Value;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  auto operator * (RhsType val) const
+  {
+    return m_Value * val;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  NumericType operator *= (RhsType val)
+  {
+    Set((NumericType)(m_Value * val));
+    return m_Value;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  auto operator / (RhsType val) const
+  {
+    return m_Value / val;
+  }
+
+  template <typename RhsType, typename Enable = std::enable_if_t<!std::is_same<RhsType, NumericType>::value>>
+  NumericType operator /= (RhsType val)
+  {
+    Set((NumericType)(m_Value / val));
     return m_Value;
   }
 
@@ -308,7 +429,7 @@ private:
     m_Value = val;
 
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }
@@ -322,3 +443,4 @@ private:
 };
 
 using RInt = RNumber<int>;
+using RFloat = RNumber<float>;

@@ -5,174 +5,155 @@
 
 #include "StormDataChangeNotifier.h"
 
-thread_local std::vector<std::experimental::optional<std::function<void(const ReflectionChangeNotification &)>>> g_NotifyCallback;
-
-
-bool DoReflectionCallback()
-{
-  return g_NotifyCallback.size() > 0 && g_NotifyCallback.back();
-}
-
 void CreateElementPath(StormReflectionParentInfo * parent_info, ReflectionChangeNotification & notification)
 {
-  if (parent_info->m_ParentInfo)
+  if (parent_info->m_MemberName)
   {
-    CreateElementPath(parent_info->m_ParentInfo, notification);
-
-    if (parent_info->m_MemberName)
-    {
-      notification.m_Path.push_back('.');
-      notification.m_Path.append(parent_info->m_MemberName);
-    }
-
-    if (parent_info->m_ParentIndex != StormReflectionParentInfo::kInvalidParentIndex)
-    {
-      notification.m_Path.push_back('[');
-      notification.m_Path.append(std::to_string(parent_info->m_ParentIndex));
-      notification.m_Path.push_back(']');
-    }
+    notification.m_Path = std::string(".") + parent_info->m_MemberName + notification.m_Path;
   }
-  else
+
+  if (parent_info->m_ParentIndex != StormReflectionParentInfo::kInvalidParentIndex)
   {
-    notification.m_BaseObject = parent_info->m_MemberName;
+    notification.m_Path = std::string("[") + std::to_string(parent_info->m_ParentIndex) + "]" + notification.m_Path;
   }
 }
 
-void ReflectionPushNotifyCallback(std::function<void(const ReflectionChangeNotification &)> && func)
+bool DoNotifyCallback(StormReflectionParentInfo & parent_info)
 {
-  g_NotifyCallback.emplace_back(std::move(func));
+  return parent_info.m_Callback || (parent_info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
 }
 
-void ReflectionPushNotifyEmptyCallback()
+void FinishChangeNotification(StormReflectionParentInfo * parent_info, ReflectionChangeNotification & notification)
 {
-  g_NotifyCallback.emplace_back(std::experimental::optional<std::function<void(const ReflectionChangeNotification &)>>{});
-}
-
-void ReflectionPopNotifyCallback()
-{
-  g_NotifyCallback.pop_back();
-}
-
-ReflectionChangeNotification InitChangeNotification(StormReflectionParentInfo * parent_info)
-{
-  ReflectionChangeNotification notification;
-  CreateElementPath(parent_info, notification);
-
-  return notification;
-}
-
-void FinishChangeNotification(const ReflectionChangeNotification & notification)
-{
-  if (g_NotifyCallback.size() > 0)
+  while(true)
   {
-    (*g_NotifyCallback.back())(notification);
+    if (parent_info->m_Callback)
+    {
+      parent_info->m_Callback(parent_info->m_CallbackUserPtr, notification);
+    }
+
+    auto new_parent_info = parent_info->m_ParentInfo;
+    if (new_parent_info == nullptr || DoNotifyCallback(*new_parent_info) == false)
+    {
+      return;
+    }
+
+    CreateElementPath(parent_info, notification);
+    parent_info = new_parent_info;
   }
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, bool value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int8_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int16_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int32_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int64_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint8_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint16_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint32_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint64_t value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, float value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, const std::string & value)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   StormReflEncodeJson(value, notification.m_Data);
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
+}
+
+void ReflectionNotifySetObject(StormReflectionParentInfo & parent_info, const std::string & value)
+{
+  ReflectionChangeNotification notification;
+  notification.m_Data = value;
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifyClearObject(StormReflectionParentInfo & parent_info)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   notification.m_Type = ReflectionNotifyChangeType::kClear;
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifyCompress(StormReflectionParentInfo & parent_info)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   notification.m_Type = ReflectionNotifyChangeType::kCompress;
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifyInsertObject(StormReflectionParentInfo & parent_info, uint64_t index, const std::string & data)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   notification.m_Type = ReflectionNotifyChangeType::kInsert;
   notification.m_Data = data;
   notification.m_SubIndex = index;
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }
 
 void ReflectionNotifyRemoveObject(StormReflectionParentInfo & parent_info, uint64_t index)
 {
-  ReflectionChangeNotification notification = InitChangeNotification(&parent_info);
+  ReflectionChangeNotification notification;
   notification.m_Type = ReflectionNotifyChangeType::kRemove;
   notification.m_SubIndex = index;
-  FinishChangeNotification(notification);
+  FinishChangeNotification(&parent_info, notification);
 }

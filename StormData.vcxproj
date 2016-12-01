@@ -49,12 +49,15 @@
     <ClInclude Include="StormDataJsonUtil.h" />
     <ClInclude Include="StormDataList.h" />
     <ClInclude Include="StormDataMap.h" />
+    <ClInclude Include="StormDataMergeList.h" />
     <ClInclude Include="StormDataNumber.h" />
     <ClInclude Include="StormDataParent.h" />
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
+    <ClInclude Include="StormDataSparseList.h" />
     <ClInclude Include="StormDataString.h" />
     <ClInclude Include="StormDataTypes.h" />
+    <ClInclude Include="StormDataUtil.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{CBEDCF5B-D149-46B4-B83C-7363CEB0B455}</ProjectGuid>

@@ -2,7 +2,7 @@
 
 #include <StormRefl/StormRefl.h>
 
-enum STORM_REFL_ENUM ReflectionNotifyChangeType
+enum STORM_REFL_ENUM class ReflectionNotifyChangeType
 {
   kSet,
   kClear,

@@ -12,17 +12,29 @@ class REnum
 {
 public:
 
-  REnum()
+  REnum() :
+    m_Value((EnumType)0)
   {
     
   }
 
-  REnum(const REnum & rhs) = default;
-  REnum(REnum && rhs) = default;
-
-  REnum(EnumType val)
+  REnum(const REnum & rhs) :
+    m_Value(rhs.m_Value)
   {
-    m_Value = val;
+  }
+
+  REnum(REnum && rhs) :
+    m_Value(rhs.m_Value)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    rhs.m_ReflectionInfo = {};
+#endif
+  }
+
+  REnum(EnumType val) :
+    m_Value(val.m_Value)
+  {
   }
   
   const EnumType & operator = (EnumType val)
@@ -100,7 +112,7 @@ private:
     m_Value = val;
 
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }

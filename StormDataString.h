@@ -9,27 +9,38 @@ class RString
 {
 public:
 
-  RString()
+  RString() noexcept
   {
 
   }
 
-  RString(const RString & rhs) = default;
-  RString(RString && rhs) = default;
-
-  RString(const std::string & val)
+  RString(const RString & rhs) noexcept :
+    m_Value(rhs.m_Value)
   {
-    m_Value = val;
   }
 
-  RString(std::string && val)
+  RString(RString && rhs) noexcept :
+    m_Value(rhs.m_Value)
   {
-    m_Value = val;
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    rhs.m_ReflectionInfo = {};
+#endif
   }
 
-  RString(czstr val)
+  RString(const std::string & val) noexcept :
+    m_Value(val)
   {
-    m_Value = val;
+  }
+
+  RString(std::string && val) noexcept :
+    m_Value(std::move(val))
+  {
+  }
+
+  RString(czstr val) noexcept :
+    m_Value(val)
+  {
   }
 
   operator std::string() const
@@ -678,7 +689,7 @@ private:
   void Modified()
   {
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }

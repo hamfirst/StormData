@@ -73,7 +73,7 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
 
   switch (type)
   {
-  case kSet:
+  case ReflectionNotifyChangeType::kSet:
     if (*data == 0)
     {
       return false;
@@ -88,15 +88,15 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
 
     notification.m_Data = std::string(start_data, data);
     return true;
-  case kClear:
-  case kCompress:
+  case ReflectionNotifyChangeType::kClear:
+  case ReflectionNotifyChangeType::kCompress:
     if (*data != 0)
     {
       return false;
     }
 
     return true;
-  case kInsert:
+  case ReflectionNotifyChangeType::kInsert:
     if (*data == 0)
     {
       return false;
@@ -124,7 +124,7 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
 
     notification.m_Data = std::string(start_data, data);
     return true;
-  case kRemove:
+  case ReflectionNotifyChangeType::kRemove:
     if (*data == 0)
     {
       return false;

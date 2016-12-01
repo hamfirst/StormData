@@ -25,5 +25,8 @@
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
     <ClInclude Include="StormDataTypes.h" />
+    <ClInclude Include="StormDataMergeList.h" />
+    <ClInclude Include="StormDataSparseList.h" />
+    <ClInclude Include="StormDataUtil.h" />
   </ItemGroup>
 </Project>

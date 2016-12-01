@@ -11,6 +11,8 @@ template <class K, class T>
 class RMap
 {
 public:
+  using ContainerType = T;
+
   template <class O>
   using Optional = std::experimental::optional<O>;
 
@@ -129,7 +131,7 @@ private:
   void Cleared()
   {
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }
@@ -142,7 +144,7 @@ private:
   {
 #ifdef STORM_CHANGE_NOTIFIER
 
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }
@@ -164,7 +166,7 @@ private:
     new_info.m_ParentIndex = key;
     SetParentInfo(value, new_info);
 
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }
@@ -179,7 +181,7 @@ private:
   void Removed(std::size_t logical_index)
   {
 #ifdef STORM_CHANGE_NOTIFIER
-    if (DoReflectionCallback() == false)
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
       return;
     }

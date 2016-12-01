@@ -1,0 +1,655 @@
+#pragma once
+
+#include <cstdlib>
+
+#include "StormData.h"
+#include "StormDataChangeNotifier.h"
+#include "StormDataParent.h"
+
+template <class T>
+class RMergeList
+{
+public:
+
+  using ContainerType = T;
+
+  struct RMergeListIterator
+  {
+    RMergeListIterator(const RMergeListIterator & rhs) : m_List(rhs.m_List), m_PhysicalIndex(rhs.m_PhysicalIndex) { }
+
+    bool operator == (const RMergeListIterator & rhs) const
+    {
+      if (m_List != rhs.m_List)
+      {
+        return false;
+      }
+
+      return m_PhysicalIndex == rhs.m_PhysicalIndex;
+    }
+
+    bool operator != (const RMergeListIterator & rhs) const
+    {
+      if (m_List != rhs.m_List)
+      {
+        return true;
+      }
+
+      return m_PhysicalIndex != rhs.m_PhysicalIndex;
+    }
+
+    std::pair<std::size_t, T &> operator *() const
+    {
+      return std::pair<std::size_t, T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
+    }
+
+    StormDataHelpers::RTempPair<std::size_t, T &> operator ->() const
+    {
+      return StormDataHelpers::RTempPair<std::size_t, T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
+    }
+
+    RMergeListIterator & operator++()
+    {
+      m_PhysicalIndex++;
+      return *this;
+    }
+
+  private:
+
+    RMergeListIterator(RMergeList<T> * list, std::size_t physical_index) : m_List(list), m_PhysicalIndex(physical_index) { }
+
+    std::size_t m_PhysicalIndex;
+    RMergeList<T> * m_List;
+
+    friend class RMergeList<T>;
+  };
+
+  struct RMergeListIteratorConst
+  {
+    RMergeListIteratorConst(const RMergeListIteratorConst & rhs) : m_List(rhs.m_List), m_PhysicalIndex(rhs.m_PhysicalIndex) { }
+
+    bool operator == (const RMergeListIteratorConst & rhs) const
+    {
+      if (m_List != rhs.m_List)
+      {
+        return false;
+      }
+
+      return m_PhysicalIndex == rhs.m_PhysicalIndex;
+    }
+
+    bool operator != (const RMergeListIteratorConst & rhs) const
+    {
+      if (m_List != rhs.m_List)
+      {
+        return true;
+      }
+
+      return m_PhysicalIndex != rhs.m_PhysicalIndex;
+    }
+
+    std::pair<std::size_t, const T &> operator *() const
+    {
+      return std::pair<std::size_t, const T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
+    }
+
+    StormDataHelpers::RTempPair<std::size_t, const T &> operator ->() const
+    {
+      return StormDataHelpers::RTempPair<int, const T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
+    }
+
+    RMergeListIteratorConst & operator++()
+    {
+      m_PhysicalIndex++;
+      return *this;
+    }
+
+  private:
+
+    RMergeListIteratorConst(const RMergeList<T> * list, std::size_t physical_index) : m_List(list), m_PhysicalIndex((int)physical_index) { }
+
+    std::size_t m_PhysicalIndex;
+    const RMergeList<T> * m_List;
+
+    friend class RMergeList<T>;
+  };
+
+  RMergeList() :
+    m_HighestIndex(-1),
+    m_Capacity(0),
+    m_Size(0),
+    m_Indices(nullptr),
+    m_Values(nullptr)
+  {
+
+  }
+
+  RMergeList(const RMergeList<T> & rhs) :
+    m_HighestIndex(rhs.m_HighestIndex)
+    m_Capacity(rhs.m_Capacity),
+    m_Size(rhs.m_Size)
+  {
+    if (rhs.m_Size > 0)
+    {
+      m_Indices = Allocate<uint32_t>(rhs.m_Capacity);
+      m_Values = Allocate<T>(rhs.m_Capacity);
+
+      for (std::size_t index = 0; index < rhs.m_Size; index++)
+      {
+        m_Indices[index] = rhs.m_Indices[index];
+        new(&m_Values[index]) T(rhs.m_Values[index]);
+      }
+
+      InitAllElements();
+    }
+    else
+    {
+      m_Indices = nullptr;
+      m_Values = nullptr;
+    }
+  }
+
+  RMergeList(RMergeList<T> && rhs) :
+    m_HighestIndex(rhs.m_HighestIndex),
+    m_Capacity(rhs.m_Capacity),
+    m_Size(rhs.m_Size),
+    m_Indices(rhs.m_Indices),
+    m_Values(rhs.m_Values)
+  {
+    rhs.m_HighestIndex = -1;
+    rhs.m_Capacity = 0;
+    rhs.m_Size = 0;
+    rhs.m_Indices = nullptr;
+    rhs.m_Values = nullptr;
+
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    rhs.m_ReflectionInfo = {};
+#endif
+
+    UpdateAllElements();
+  }
+
+  ~RMergeList()
+  {
+    if (m_Capacity > 0)
+    {
+      for (std::size_t index = 0; index < m_Size; index++)
+      {
+        m_Values[index].~T();
+      }
+
+      Deallocate(m_Values);
+      Deallocate(m_Indices);
+    }
+  }
+
+  RMergeList<T> & operator = (const RMergeList<T> & rhs)
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[index].~T();
+    }
+
+    if (rhs.m_Size > m_Capacity)
+    {
+      Deallocate(m_Values);
+      Deallocate(m_Indices);
+
+      m_Indices = Allocate<uint32_t>(rhs.m_Capacity);
+      m_Values = Allocate<T>(rhs.m_Capacity);
+
+      m_Capacity = rhs.m_Capacity;
+    }
+
+    for (std::size_t index = 0; index < rhs.m_Size; index++)
+    {
+      m_Indices[index] = rhs.m_Indices[index];
+      new(&m_Values[index]) T(rhs.m_Values[index]);
+    }
+
+    m_Size = rhs.m_Size;
+    m_HighestIndex = rhs.m_HighestIndex;
+
+    InitAllElements();
+    Set();
+
+    return *this;
+  }
+
+  RMergeList<T> & operator = (RMergeList<T> && rhs)
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[index].~T();
+    }
+
+    if (m_Capacity > 0)
+    {
+      Deallocate(m_Values);
+      Deallocate(m_Indices);
+    }
+
+    m_HighestIndex = rhs.m_HighestIndex;
+    m_Indices = rhs.m_Indices;
+    m_Values = rhs.m_Values;
+    m_Size = rhs.m_Size;
+    m_Capacity = rhs.m_Capacity;
+
+    rhs.m_HighestIndex = -1;
+    rhs.m_Size = 0;
+    rhs.m_Capacity = 0;
+    rhs.m_Indices = nullptr;
+    rhs.m_Values = nullptr;
+
+    UpdateAllElements();
+    Set();
+
+    return *this;
+  }
+
+  void Clear()
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[index].~T();
+    }
+
+    m_HighestIndex = -1;
+    m_Size = 0;
+    Cleared();
+  }
+
+  void Reserve(std::size_t size)
+  {
+    if (size > m_Capacity)
+    {
+      Grow(size);
+    }
+  }
+
+  T & PushBack(const T & val)
+  {
+    bool existing_elem;
+    std::size_t physical_index;
+    T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
+    new(elem) T(val);
+    Inserted(m_HighestIndex, physical_index);
+  }
+
+  template <typename ... InitArgs>
+  T & EmplaceBack(InitArgs && ... args)
+  {
+    bool existing_elem;
+    std::size_t physical_index;
+    T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
+    new(elem) T(std::forward<InitArgs>(args)...);
+    Inserted(m_HighestIndex, physical_index);
+  }
+
+  T & InsertAt(std::size_t logical_index, const T & val)
+  {
+    bool existing_elem;
+    std::size_t physical_index;
+    T * elem = InsertInternal(logical_index, existing_elem, physical_index);
+    if (existing_elem)
+    {
+      *t = val;
+    }
+    else
+    {
+      new(elem) T(val);
+      Inserted(logical_index, physical_index);
+    }
+  }
+
+  template <typename ... InitArgs>
+  T & EmplaceAt(std::size_t logical_index, InitArgs && ... args)
+  {
+    bool existing_elem;
+    std::size_t physical_index;
+    T * elem = InsertInternal(logical_index, existing_elem, physical_index);
+    if (existing_elem)
+    {
+      *t = T(std::forward<InitArgs>(args)...);
+    }
+    else
+    {
+      new(elem) T(std::forward<InitArgs>(args)...);
+      Inserted(logical_index, physical_index);
+    }
+  }
+
+  void Remove(const RMergeListIterator & itr)
+  {
+    RemoveInternal(itr.m_PhysicalIndex);
+  }
+
+  void Remove(const RMergeListIteratorConst & itr)
+  {
+    RemoveInternal(itr.m_PhysicalIndex);
+  }
+
+  void RemoveAt(std::size_t logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        RemoveInternal(test);
+        return;
+      }
+    }
+  }
+
+  std::size_t HighestIndex()
+  {
+    return m_HighestIndex;
+  }
+
+  void Compress()
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Indices[index] = index;
+    }
+
+    UpdateAllElements();
+    Compressed();
+  }
+
+  T & operator[](int logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
+  }
+
+  RMergeListIterator begin()
+  {
+    RMergeListIterator itr(this, 0);
+    return itr;
+  }
+
+  RMergeListIterator end()
+  {
+    RMergeListIterator itr(this, m_Size);
+    return itr;
+  }
+
+  RMergeListIteratorConst begin() const
+  {
+    RMergeListIteratorConst itr(this, 0);
+    return itr;
+  }
+
+  RMergeListIteratorConst end() const
+  {
+    RMergeListIteratorConst itr(this, m_Size);
+    return itr;
+  }
+
+  bool operator == (const RMergeList<T> & rhs) const
+  {
+    if (m_Size != rhs.m_Size)
+    {
+      return false;
+    }
+
+    auto itr1 = begin();
+    auto itr2 = rhs.begin();
+
+    auto last = end();
+
+    while (itr1 != last)
+    {
+      if ((*itr1).first == (*itr2).first && (*itr1).second == (*itr2).second)
+      {
+        ++itr1;
+        ++itr2;
+        continue;
+      }
+
+      return false;
+    }
+
+    return true;
+  }
+
+private:
+
+  template <typename Elem>
+  Elem * Allocate(std::size_t count)
+  {
+    return malloc(sizeof(Elem) * count);
+  }
+
+  void Deallocate(void * ptr)
+  {
+    free(ptr);
+  }
+
+  void Grow()
+  {
+    if (m_Capacity == 0)
+    {
+      Grow(1);
+      return;
+    }
+
+    Grow(m_Capacity * 2);
+  }
+
+  void Grow(std::size_t requested_size)
+  {
+    auto indices = Allocate<uint32_t>(requested_size);
+    auto values = Allocate<T>(requested_size);
+
+    if (m_Capacity > 0)
+    {
+      for (std::size_t index = 0; index < m_Size; index++)
+      {
+        indices[index] = m_Indices[index];
+        new (&values[index]) T(std::move(m_Values[index]));
+
+        m_Values[index].~T();
+      }
+    }
+
+    Deallocate(m_Indices);
+    Deallocate(m_Values);
+
+    m_Indices = indices;
+    m_Values = values;
+    m_Capacity = requested_size;
+  }
+
+  void MoveForward(std::size_t start_index)
+  {
+    for (std::size_t index = m_Size; index > start_index; index--)
+    {
+      m_Indices[index] = m_Indices[index - 1];
+      new (&m_Values[index]) T(std::move(m_Values[index - 1]));
+
+      m_Values[index - 1].~T();
+    }
+  }
+
+  void MoveBackward(std::size_t start_index)
+  {
+    for (std::size_t index = start_index; index < m_Size - 1; index++)
+    {
+      m_Indices[index] = m_Indices[index + 1];
+      new (&m_Values[index]) T(std::move(m_Values[index + 1]));
+
+      m_Values[index + 1].~T();
+    }
+  }
+
+  T * InsertInternal(std::size_t logical_index, bool & exists, std::size_t & physical_index)
+  {
+    if (m_Capacity == m_Size)
+    {
+      Grow();
+    }
+
+    exists = false;
+
+    if (logical_index > m_HighestIndex)
+    {
+      m_Indices[m_Size] = logical_index;
+      m_HighestIndex = (int)logical_index;
+
+      physical_index = m_Size;
+      return &m_Values[m_Size++];
+    }
+
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        exists = true;
+        return &m_Values[test];
+      }
+
+      if (m_Indices[test] > logical_index)
+      {
+        MoveForward(test);
+        m_Size++;
+
+        m_Indices[test] = logical_index;
+        physical_index = test;
+        return &m_Values[test];
+      }
+    }
+
+    throw std::logic_error("?");
+  }
+
+  void RemoveInternal(std::size_t physical_index)
+  {
+    size_t logical_index = m_Indices[physical_index];
+
+    if (physical_index >= m_Size)
+    {
+      throw std::out_of_range("Removing invalid iterator");
+    }
+
+    MoveBackward(physical_index);
+    m_Size--;
+
+    m_HighestIndex = m_Size > 0 ? m_Indices[m_Size - 1] : -1;
+    Removed(logical_index);
+  }
+
+  void InitAllElements()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &m_ReflectionInfo;
+    new_info.m_MemberName = nullptr;
+
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      new_info.m_ParentIndex = m_Indices[index];
+      SetParentInfo(m_Values[physical_index], new_info);
+    }
+#endif
+  }
+
+  void UpdateAllElements()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[physical_index].m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
+    }
+#endif
+  }
+
+  void Set()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this));
+#endif
+  }
+
+  void Cleared()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    ReflectionNotifyClearObject(m_ReflectionInfo);
+#endif
+  }
+
+  void Compressed()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    ReflectionNotifyCompress(m_ReflectionInfo);
+#endif
+  }
+
+  void Inserted(std::size_t logical_index, std::size_t physical_index)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+
+    StormReflectionParentInfo new_info;
+    new_info.m_ParentInfo = &m_ReflectionInfo;
+    new_info.m_ParentIndex = logical_index;
+    new_info.m_MemberName = nullptr;
+
+    SetParentInfo(m_Values[physical_index], new_info);
+
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    std::string data;
+    StormReflEncodeJson(m_Values[physical_index], data);
+    ReflectionNotifyInsertObject(m_ReflectionInfo, logical_index, data);
+#endif
+  }
+
+  void Removed(std::size_t logical_index)
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    ReflectionNotifyRemoveObject(m_ReflectionInfo, logical_index);
+#endif
+  }
+
+  int m_HighestIndex;
+
+  std::size_t m_Capacity;
+  std::size_t m_Size;
+
+  uint32_t * m_Indices;
+  T * m_Values;
+
+  STORM_CHANGE_NOTIFIER_INFO;
+};
+

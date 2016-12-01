@@ -18,48 +18,98 @@ template <typename K, typename T> class RMap;
 template <typename T, typename Enable = void>
 struct SetParentInfoStruct
 {
-  void operator()(T & t, const StormReflectionParentInfo & info)
+  static void Set(T & t, const StormReflectionParentInfo & info)
+  {
+
+  }
+
+  static void ClearParentCallback(T & t)
+  {
+
+  }
+
+  static void SetFlag(T & t, StormDataParentInfoFlags flags)
+  {
+
+  }
+
+  static void ClearFlag(T & t, StormDataParentInfoFlags flags)
   {
 
   }
 };
 
-template <>
-struct SetParentInfoStruct<RBool>
+template <typename T>
+struct SetBasicParentInfo
 {
-  void operator()(RBool & value, const StormReflectionParentInfo & info)
+  static void Set(T & value, const StormReflectionParentInfo & info)
   {
     value.m_ReflectionInfo = info;
   }
+
+  static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
+  {
+    value.m_ReflectionInfo.m_Callback = callback;
+    value.m_ReflectionInfo.m_CallbackUserPtr = user_ptr;
+  }
+
+  static void ClearCallback(T & value)
+  {
+    value.m_ReflectionInfo.m_Callback = nullptr;
+    value.m_ReflectionInfo.m_CallbackUserPtr = nullptr;
+  }
+
+  static void ClearParentCallback(T & value)
+  {
+    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+  }
+
+  static void SetFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags |= (uint32_t)flags;
+  }
+
+  static void ClearFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
+  }
+};
+
+template <>
+struct SetParentInfoStruct<RBool> : public SetBasicParentInfo<RBool>
+{
+
 };
 
 template <typename NumericType>
-struct SetParentInfoStruct<RNumber<NumericType>>
+struct SetParentInfoStruct<RNumber<NumericType>> : public SetBasicParentInfo<RNumber<NumericType>>
 {
-  void operator()(RNumber<NumericType> & value, const StormReflectionParentInfo & info)
-  {
-    value.m_ReflectionInfo = info;
-  }
+
 };
 
 template <>
-struct SetParentInfoStruct<RString>
+struct SetParentInfoStruct<RString> : public SetBasicParentInfo<RString>
 {
-  void operator()(RString & value, const StormReflectionParentInfo & info)
-  {
-    value.m_ReflectionInfo = info;
-  }
+
+};
+
+template <class EnumType>
+struct SetParentInfoStruct<REnum<EnumType>> : public SetBasicParentInfo<REnum<EnumType>>
+{
+
 };
 
 template <typename T>
 struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectable<T>::value>>
 {
-  void operator()(T & value, const StormReflectionParentInfo & info)
+  static void Set(T & value, const StormReflectionParentInfo & info)
   {
     value.m_ReflectionInfo = info;
 
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &value.m_ReflectionInfo;
+    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ? 
+      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     auto parent_setter = [&](auto f)
     {
@@ -72,16 +122,60 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
 
     StormReflVisitEach(value, parent_setter);
   }
+
+  static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
+  {
+    value.m_ReflectionInfo.m_Callback = callback;
+    value.m_ReflectionInfo.m_CallbackUserPtr = user_ptr;
+
+    auto visitor = [](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::SetFlag(f.Get(), StormDataParentInfoFlags::kParentHasCallback); };
+    StormReflVisitEach(value, visitor);
+  }
+
+  static void ClearCallback(T & value)
+  {
+    value.m_ReflectionInfo.m_Callback = nullptr;
+    value.m_ReflectionInfo.m_CallbackUserPtr = nullptr;
+
+    auto visitor = [](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::ClearParentCallback(f.Get()); };
+    StormReflVisitEach(value, visitor);
+  }
+
+  static void ClearParentCallback(T & value)
+  {
+    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+    if (value.m_ReflectionInfo.m_Callback == nullptr)
+    {
+      auto visitor = [](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::ClearParentCallback(f.Get()); };
+      StormReflVisitEach(value, visitor);
+    }
+  }
+
+  static void SetFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags |= (uint32_t)flags;
+    auto visitor = [&](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::SetFlag(f.Get(), flags); };
+    StormReflVisitEach(value, visitor);
+  }
+
+  static void ClearFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
+    auto visitor = [&](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::ClearFlag(f.Get(), flags); };
+    StormReflVisitEach(value, visitor);
+  }
 };
 
 template <typename T, int i>
 struct SetParentInfoStruct<T[i]>
 {
-  void operator()(T(&value)[i], const StormReflectionParentInfo & info)
+  static void Set(T(&value)[i], const StormReflectionParentInfo & info)
   {
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = info.m_ParentInfo;
     new_info.m_MemberName = info.m_MemberName;
+    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (int index = 0; index < i; index++)
     {
@@ -89,26 +183,43 @@ struct SetParentInfoStruct<T[i]>
       SetParentInfo(value[index], new_info);
     }
   }
-};
 
-template <class EnumType>
-struct SetParentInfoStruct<REnum<EnumType>>
-{
-  void operator()(REnum<EnumType> & value, const StormReflectionParentInfo & info)
+  static void ClearParentCallback(T(&value)[i])
   {
-    value.m_ReflectionInfo = info;
+    for (int index = 0; index < i; index++)
+    {
+      SetParentInfoStruct<T>::ClearParentCallback(value[index], flags);
+    }
+  }
+
+  static void SetFlag(T(&value)[i], StormDataParentInfoFlags flags)
+  {
+    for (int index = 0; index < i; index++)
+    {
+      SetParentInfoStruct<T>::SetFlag(value[index], flags);
+    }
+  }
+
+  static void ClearFlag(T(&value)[i], StormDataParentInfoFlags flags)
+  {
+    for (int index = 0; index < i; index++)
+    {
+      SetParentInfoStruct<T>::ClearFlag(value[index], flags);
+    }
   }
 };
 
 template <class T>
-struct SetParentInfoStruct<RSparseList<T>>
+struct SetHashMapParentInfo
 {
-  void operator()(RSparseList<T> & value, const StormReflectionParentInfo & info)
+  static void Set(T & value, const StormReflectionParentInfo & info)
   {
     value.m_ReflectionInfo = info;
 
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &value.m_ReflectionInfo;
+    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (auto t : value)
     {
@@ -116,58 +227,85 @@ struct SetParentInfoStruct<RSparseList<T>>
       SetParentInfo(t.second, new_info);
     }
   }
+
+  static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
+  {
+    value.m_ReflectionInfo.m_Callback = callback;
+    value.m_ReflectionInfo.m_CallbackUserPtr = user_ptr;
+
+    for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::SetFlag(t.second, StormDataParentInfoFlags::kParentHasCallback); };
+  }
+
+  static void ClearCallback(T & value)
+  {
+    value.m_ReflectionInfo.m_Callback = nullptr;
+    value.m_ReflectionInfo.m_CallbackUserPtr = nullptr;
+
+    for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::ClearParentCallback(t.second); };
+  }
+
+  static void ClearParentCallback(T & value)
+  {
+    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+    if (value.m_ReflectionInfo.m_Callback == nullptr)
+    {
+      for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::ClearParentCallback(t.second); };
+    }
+  }
+
+  static void SetFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags |= (uint32_t)flags;
+    for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::SetFlag(t.second, flags); };
+  }
+
+  static void ClearFlag(T & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
+    for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::ClearFlag(t.second, flags); };
+  }
 };
 
 template <class T>
-struct SetParentInfoStruct<RMergeList<T>>
+struct SetParentInfoStruct<RSparseList<T>> : public SetHashMapParentInfo<RSparseList<T>>
 {
-  void operator()(RMergeList<T> & value, const StormReflectionParentInfo & info)
-  {
-    value.m_ReflectionInfo = info;
+};
 
-    StormReflectionParentInfo new_info;
-    new_info.m_ParentInfo = &value.m_ReflectionInfo;
+template <class T>
+struct SetParentInfoStruct<RMergeList<T>> : public SetHashMapParentInfo<RMergeList<T>>
+{
 
-    for (auto t : value)
-    {
-      new_info.m_ParentIndex = t.first;
-      SetParentInfo(t.second, new_info);
-    }
-  }
 };
 
 template <class K, class T>
-struct SetParentInfoStruct<RMap<K, T>>
+struct SetParentInfoStruct<RMap<K, T>> : public SetHashMapParentInfo<RMap<K, T>>
 {
-  void operator()(RMap<K, T> & value, const StormReflectionParentInfo & info)
-  {
-    value.m_ReflectionInfo = info;
 
-    StormReflectionParentInfo new_info;
-    new_info.m_ParentInfo = &value.m_ReflectionInfo;
-
-    for (auto t : value)
-    {
-      new_info.m_ParentIndex = t.first;
-      SetParentInfo(t.second, new_info);
-    }
-  }
 };
 
 template <typename T>
 void SetParentInfo(T & t, const StormReflectionParentInfo & info)
 {
-  SetParentInfoStruct<T>{}(t, info);
+  SetParentInfoStruct<T>::Set(t, info);
 }
 
-// For base level structs, this sets the default info
+template <typename T>
+void SetNotifyCallback(T & t, StormDataNotifyCallback callback, void * user_ptr)
+{
+  SetParentInfoStruct<T>::SetCallback(t, callback, user_ptr);
+}
+
+template <typename T>
+void ClearNotifyCallback(T & t, StormDataNotifyCallback callback, void * user_ptr)
+{
+  SetParentInfoStruct<T>::ClearCallback(t, callback, user_ptr);
+}
+
 template <typename T>
 void InitializeParentInfo(T & value)
 {
-  StormReflectionParentInfo default_info;
-  default_info.m_MemberName = (const char *)&value;
+  StormReflectionParentInfo default_info{};
   SetParentInfo(value, default_info);
 }
-
 
 #endif
