@@ -7,14 +7,14 @@
 
 void CreateElementPath(StormReflectionParentInfo * parent_info, ReflectionChangeNotification & notification)
 {
-  if (parent_info->m_MemberName)
-  {
-    notification.m_Path = std::string(".") + parent_info->m_MemberName + notification.m_Path;
-  }
-
   if (parent_info->m_ParentIndex != StormReflectionParentInfo::kInvalidParentIndex)
   {
     notification.m_Path = std::string("[") + std::to_string(parent_info->m_ParentIndex) + "]" + notification.m_Path;
+  }
+
+  if (parent_info->m_MemberName)
+  {
+    notification.m_Path = std::string(".") + parent_info->m_MemberName + notification.m_Path;
   }
 }
 

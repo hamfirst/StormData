@@ -5,6 +5,7 @@
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"
 #include "StormDataParent.h"
+#include "StormDataUtil.h"
 
 template <class T>
 class RMergeList
@@ -124,7 +125,7 @@ public:
   }
 
   RMergeList(const RMergeList<T> & rhs) :
-    m_HighestIndex(rhs.m_HighestIndex)
+    m_HighestIndex(rhs.m_HighestIndex),
     m_Capacity(rhs.m_Capacity),
     m_Size(rhs.m_Size)
   {
@@ -274,6 +275,8 @@ public:
     T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
     new(elem) T(val);
     Inserted(m_HighestIndex, physical_index);
+
+    return *elem;
   }
 
   template <typename ... InitArgs>
@@ -284,6 +287,8 @@ public:
     T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
     new(elem) T(std::forward<InitArgs>(args)...);
     Inserted(m_HighestIndex, physical_index);
+
+    return *elem;
   }
 
   T & InsertAt(std::size_t logical_index, const T & val)
@@ -300,6 +305,8 @@ public:
       new(elem) T(val);
       Inserted(logical_index, physical_index);
     }
+
+    return *elem;
   }
 
   template <typename ... InitArgs>
@@ -310,13 +317,15 @@ public:
     T * elem = InsertInternal(logical_index, existing_elem, physical_index);
     if (existing_elem)
     {
-      *t = T(std::forward<InitArgs>(args)...);
+      *elem = T(std::forward<InitArgs>(args)...);
     }
     else
     {
       new(elem) T(std::forward<InitArgs>(args)...);
       Inserted(logical_index, physical_index);
     }
+
+    return *elem;
   }
 
   void Remove(const RMergeListIterator & itr)
@@ -426,7 +435,7 @@ private:
   template <typename Elem>
   Elem * Allocate(std::size_t count)
   {
-    return malloc(sizeof(Elem) * count);
+    return (Elem *)malloc(sizeof(Elem) * count);
   }
 
   void Deallocate(void * ptr)
@@ -500,7 +509,7 @@ private:
 
     exists = false;
 
-    if (logical_index > m_HighestIndex)
+    if (m_HighestIndex < (int)logical_index)
     {
       m_Indices[m_Size] = logical_index;
       m_HighestIndex = (int)logical_index;
@@ -553,6 +562,8 @@ private:
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = nullptr;
+    new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (std::size_t index = 0; index < m_Size; index++)
     {
@@ -565,9 +576,27 @@ private:
   void UpdateAllElements()
   {
 #ifdef STORM_CHANGE_NOTIFIER
+    bool has_callback = m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
+
     for (std::size_t index = 0; index < m_Size; index++)
     {
-      m_Values[physical_index].m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
+      m_Values[index].m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
+      bool child_has_flag = (m_Values[index].m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
+
+      if (child_has_flag)
+      {
+        if (has_callback == false)
+        {
+          SetParentInfoStruct<T>::ClearParentCallback(m_Values[index]);
+        }
+      }
+      else
+      {
+        if (has_callback == true)
+        {
+          SetParentInfoStruct<T>::SetFlag(m_Values[index], StormDataParentInfoFlags::kParentHasCallback);
+        }
+      }
     }
 #endif
   }
@@ -616,6 +645,8 @@ private:
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_ParentIndex = logical_index;
     new_info.m_MemberName = nullptr;
+    new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     SetParentInfo(m_Values[physical_index], new_info);
 

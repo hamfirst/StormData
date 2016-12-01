@@ -23,7 +23,7 @@ struct StormReflectionParentInfo
   const char * m_MemberName = nullptr;
   StormReflectionParentInfo * m_ParentInfo = nullptr;
   StormDataNotifyCallback m_Callback = nullptr;
-  void * m_CallbackUserPtr;
+  void * m_CallbackUserPtr = nullptr;
 };
 
 #define STORM_CHANGE_NOTIFIER

@@ -109,7 +109,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RSparseList<T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.EmplacetAt((std::size_t)index);
+      auto & elem = t.EmplaceAt((std::size_t)index);
       return StormReflJson<T>::Parse(elem, data_str, data_str);
     }
 
@@ -152,7 +152,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RSparseList<T> & t, uint64_t index)
     {
-      t.RemoveAt(index);
+      t.RemoveAt((std::size_t)index);
       return true;
     }
   };

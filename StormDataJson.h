@@ -242,7 +242,7 @@ struct StormReflJson<RSparseList<T>, void>
       str++;
       StormReflJsonAdvanceWhiteSpace(str);
 
-      t.InsertAt(T{}, index);
+      t.EmplaceAt(index);
 
       if (StormReflJson<T>::Parse(t[index], str, str) == false)
       {
@@ -383,7 +383,7 @@ struct StormReflJson<RMergeList<T>, void>
       str++;
       StormReflJsonAdvanceWhiteSpace(str);
 
-      auto & val = t.InsertAt(T{}, index);
+      auto & val = t.EmplaceAt(index);
       if (StormReflJson<T>::Parse(val, str, str) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)

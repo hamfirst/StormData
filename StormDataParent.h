@@ -61,7 +61,7 @@ struct SetBasicParentInfo
 
   static void ClearParentCallback(T & value)
   {
-    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+    ClearFlag(value, (StormDataParentInfoFlags)~(uint32_t)StormDataParentInfoFlags::kParentHasCallback);
   }
 
   static void SetFlag(T & value, StormDataParentInfoFlags flags)
@@ -109,7 +109,7 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &value.m_ReflectionInfo;
     new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ? 
-      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+                        (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     auto parent_setter = [&](auto f)
     {
@@ -174,8 +174,8 @@ struct SetParentInfoStruct<T[i]>
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = info.m_ParentInfo;
     new_info.m_MemberName = info.m_MemberName;
-    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
-      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ? 
+                        (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (int index = 0; index < i; index++)
     {
@@ -218,8 +218,8 @@ struct SetHashMapParentInfo
 
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &value.m_ReflectionInfo;
-    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
-      info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+    new_info.m_Flags = (info.m_Callback != nullptr || (info.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ? 
+                        (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (auto t : value)
     {

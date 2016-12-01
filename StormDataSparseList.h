@@ -11,7 +11,6 @@ class RSparseList
 {
 public:
   using ContainerType = T;
-  using ContainerData = std::experimental::optional<T>;
 
   struct RSparseListIterator
   {
@@ -39,12 +38,12 @@ public:
 
     std::pair<std::size_t, T &> operator *() const
     {
-      return std::pair<std::size_t, T &>((std::size_t)m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
+      return std::pair<std::size_t, T &>((std::size_t)m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_Value);
     }
 
     StormDataHelpers::RTempPair<std::size_t, T &> operator ->() const
     {
-      return StormDataHelpers::RTempPair<std::size_t, T &>((std::size_t)m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
+      return StormDataHelpers::RTempPair<std::size_t, T &>((std::size_t)m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_Value);
     }
 
     void operator++()
@@ -91,12 +90,12 @@ public:
 
     std::pair<std::size_t, const T &> operator *() const
     {
-      return std::pair<std::size_t, const T &>((std::size_t)m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
+      return std::pair<std::size_t, const T &>((std::size_t)m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_Value);
     }
 
     StormDataHelpers::RTempPair<std::size_t, const T &> operator ->() const
     {
-      return StormDataHelpers::RTempPair<std::size_t, const T &>((std::size_t)m_PhysicalIndex, *m_List->m_Values[m_PhysicalIndex]);
+      return StormDataHelpers::RTempPair<std::size_t, const T &>((std::size_t)m_PhysicalIndex, m_List->m_Values[m_PhysicalIndex].m_Value);
     }
 
     void operator++()
@@ -189,7 +188,7 @@ public:
       m_Capacity = rhs.m_Capacity;
     }
 
-    for (std::size_t index = 0; index < rhs.m_HighestIndex; index++)
+    for (int index = 0; index <= rhs.m_HighestIndex; index++)
     {
       m_Values[index].m_Valid = rhs.m_Values[index].m_Valid;
       if (rhs.m_Values[index].m_Valid)
@@ -198,7 +197,7 @@ public:
       }
     }
 
-    for (std::size_t index = rhs.m_HighestIndex; index < m_Capacity; index++)
+    for (int index = rhs.m_HighestIndex + 1; index < m_Capacity; index++)
     {
       m_Values[index].m_Valid = false;
     }
@@ -252,11 +251,12 @@ public:
 
   T & PushBack(const T & val)
   {
-    m_HighestIndex++;
-    if (m_HighestIndex == m_Capacity)
+    if (m_HighestIndex + 1 == m_Capacity)
     {
       Grow();
     }
+
+    m_HighestIndex++;
 
     m_Values[m_HighestIndex].m_Valid = true;
     new(&m_Values[m_HighestIndex].m_Value) T(val);
@@ -268,11 +268,12 @@ public:
   template <typename ... InitArgs>
   void EmplaceBack(InitArgs && ... args)
   {
-    m_HighestIndex++;
-    if (m_HighestIndex == m_Capacity)
+    if (m_HighestIndex + 1 == m_Capacity)
     {
       Grow();
     }
+
+    m_HighestIndex++;
 
     m_Values[m_HighestIndex].m_Valid = true;
     new(&m_Values[m_HighestIndex].m_Value) T(std::forward<InitArgs>(args)...);
@@ -285,7 +286,7 @@ public:
   {
     GrowToFit(logical_index);
 
-    m_HighestIndex = std::max(m_HighestIndex, logical_index);
+    m_HighestIndex = m_HighestIndex == -1 || logical_index > (std::size_t)m_HighestIndex ? (int)logical_index : m_HighestIndex;
 
     if (m_Values[logical_index].m_Valid)
     {
@@ -302,11 +303,11 @@ public:
   }
 
   template <typename ... InitArgs>
-  T & EmplacetAt(std::size_t logical_index, InitArgs && ... args)
+  T & EmplaceAt(std::size_t logical_index, InitArgs && ... args)
   {
     GrowToFit(logical_index);
 
-    m_HighestIndex = std::max(m_HighestIndex, logical_index);
+    m_HighestIndex = m_HighestIndex == -1 || logical_index > (std::size_t)m_HighestIndex ? (int)logical_index : m_HighestIndex;
 
     if (m_Values[logical_index].m_Valid)
     {
@@ -393,14 +394,19 @@ public:
 
   T & operator[](std::size_t index)
   {
-    if (index >= m_HighestIndex)
+    if (m_HighestIndex == -1)
     {
-      return std::out_of_range("Invalid index");
+      throw std::out_of_range("Invalid index");
+    }
+
+    if (index >= (std::size_t)m_HighestIndex)
+    {
+      throw std::out_of_range("Invalid index");
     }
 
     if (m_Values[index].m_Valid == false)
     {
-      return std::out_of_range("Invalid index");
+      throw std::out_of_range("Invalid index");
     }
 
     return m_Values[index].m_Value;
@@ -426,7 +432,7 @@ public:
 
   RSparseListIteratorConst begin() const
   {
-    std::size_t start_index = 0;
+    int start_index = 0;
     while (start_index <= m_HighestIndex && m_Values[start_index].m_Valid == false)
     {
       start_index++;
@@ -474,7 +480,7 @@ private:
   template <typename Elem>
   Elem * Allocate(std::size_t count)
   {
-    return malloc(sizeof(Elem) * count);
+    return (Elem *)malloc(sizeof(Elem) * count);
   }
 
   void Deallocate(void * ptr)
@@ -520,19 +526,23 @@ private:
 
     if (m_Capacity > 0)
     {
-      for (std::size_t index = 0; index < m_Capacity; index++)
+      for (int index = 0; index <= m_HighestIndex; index++)
       {
         values[index].m_Valid = m_Values[index].m_Valid;
         if (m_Values[index].m_Valid)
         {
           new (&values[index].m_Value) T(std::move(m_Values[index].m_Value));
-          values[index].m_Valid = true;
 
           m_Values[index].m_Value.~T();
         }
       }
 
       Deallocate(m_Values);
+    }
+
+    for (int index = m_HighestIndex + 1; index < (int)requested_size; index++)
+    {
+      values[index].m_Valid = false;
     }
 
     m_Values = values;
@@ -568,6 +578,8 @@ private:
     StormReflectionParentInfo new_info;
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = nullptr;
+    new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     for (int index = 0; index <= m_HighestIndex; index++)
     {
@@ -583,25 +595,31 @@ private:
   void UpdateAllElements()
   {
 #ifdef STORM_CHANGE_NOTIFIER
+    bool has_callback = m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
+
     for (int index = 0; index <= m_HighestIndex; index++)
     {
       if (m_Values[index].m_Valid)
       {
         m_Values[physical_index].m_Value.m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
+        bool child_has_flag = (m_Values[index].m_Value.m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
+
+        if (child_has_flag)
+        {
+          if (has_callback == false)
+          {
+            SetParentInfoStruct<T>::ClearParentCallback(m_Values[index].m_Value);
+          }
+        }
+        else
+        {
+          if (has_callback == true)
+          {
+            SetParentInfoStruct<T>::SetFlag(m_Values[index].m_Value, StormDataParentInfoFlags::kParentHasCallback);
+          }
+        }
       }
     }
-#endif
-  }
-
-  void Set()
-  {
-#ifdef STORM_CHANGE_NOTIFIER
-    if (DoNotifyCallback(m_ReflectionInfo) == false)
-    {
-      return;
-    }
-
-    ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this));
 #endif
   }
 
@@ -637,7 +655,7 @@ private:
     {
       if (m_Values[index].m_Valid)
       {
-        SetParentInfo(m_Values[index].m_Value.m_ParentIndex = index;
+        m_Values[index].m_Value.m_ReflectionInfo.m_ParentIndex = index;
       }
     }
 
@@ -658,7 +676,9 @@ private:
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = nullptr;
     new_info.m_ParentIndex = logical_index;
-    SetParentInfo(*m_Values[logical_index], new_info);
+    new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+    SetParentInfo(m_Values[logical_index].m_Value, new_info);
 
     if (DoNotifyCallback(m_ReflectionInfo) == false)
     {
