@@ -568,7 +568,7 @@ private:
     for (std::size_t index = 0; index < m_Size; index++)
     {
       new_info.m_ParentIndex = m_Indices[index];
-      SetParentInfo(m_Values[physical_index], new_info);
+      SetParentInfo(m_Values[index], new_info);
     }
 #endif
   }

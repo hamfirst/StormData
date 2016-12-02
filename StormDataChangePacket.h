@@ -111,11 +111,6 @@ bool StormDataApplyChangePacketRemove(T & t, const char * path, uint64_t index)
       return false;
     }
 
-    if (*path != ' ')
-    {
-      return false;
-    }
-
     return StormDataChangePacketHelpers::StormDataApplyRemove<T>::Process(t, index);
   }
 

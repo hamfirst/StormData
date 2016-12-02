@@ -30,8 +30,46 @@ struct StormReflectionParentInfo
 #define STORM_CHANGE_NOTIFIER_INFO \
   public: \
   STORM_REFL_IGNORE StormReflectionParentInfo m_ReflectionInfo
-  
 
+#define STORM_DATA_DEFAULT_CONSTRUCTION(TypeName) \
+  STORM_REFL; \
+  STORM_CHANGE_NOTIFIER_INFO; \
+  TypeName(); \
+  TypeName(const TypeName & rhs); \
+  TypeName(TypeName && rhs); \
+  TypeName & operator = (const TypeName & rhs); \
+  TypeName & operator = (TypeName && rhs);
+
+#define STORM_DATA_DEFAULT_CONSTRUCTION_IMPL(TypeName) \
+  TypeName::TypeName() \
+  { \
+    InitializeParentInfo(*this); \
+  } \
+  TypeName::TypeName(const TypeName & rhs) \
+  { \
+    InitializeParentInfo(*this); \
+    StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflElementwiseCopy(dst.Get(), src.Get()); }); \
+  } \
+  TypeName::TypeName(TypeName && rhs) \
+  { \
+    InitializeParentInfo(*this); \
+    StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
+    MoveParentInfo(rhs, *this); \
+  } \
+  TypeName & TypeName::operator = (const TypeName & rhs) \
+  { \
+    InitializeParentInfo(*this); \
+    StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflElementwiseCopy(dst.Get(), src.Get()); }); \
+    ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
+    return *this; \
+  } \
+  TypeName & TypeName::operator = (TypeName && rhs) \
+  { \
+    InitializeParentInfo(*this); \
+    StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
+    ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
+    return *this; \
+  } \
 
 
 

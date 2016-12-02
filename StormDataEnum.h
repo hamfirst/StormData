@@ -18,12 +18,12 @@ public:
     
   }
 
-  REnum(const REnum & rhs) :
+  REnum(const REnum<EnumType> & rhs) :
     m_Value(rhs.m_Value)
   {
   }
 
-  REnum(REnum && rhs) :
+  REnum(REnum<EnumType> && rhs) :
     m_Value(rhs.m_Value)
   {
 #ifdef STORM_CHANGE_NOTIFIER
@@ -53,6 +53,18 @@ public:
       Set(out);
     }
 
+    return m_Value;
+  }
+
+  const EnumType & operator = (const REnum<EnumType> & rhs)
+  {
+    Set(rhs.m_Value);
+    return m_Value;
+  }
+
+  const EnumType & operator = (REnum<EnumType> && rhs)
+  {
+    Set(rhs.m_Value);
     return m_Value;
   }
 

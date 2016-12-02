@@ -62,16 +62,16 @@ public:
 
     RMapIteratorBase(MapType map) :
       m_Map(map),
-      m_List(&map->m_Buckets[0]),
-      m_BucketIndex(0),
+      m_List(map->m_Buckets ? &map->m_Buckets[0] : nullptr),
+      m_BucketIndex(map->m_Buckets ? 0 : kBucketCount),
       m_ListIndex(-1)
-    { 
+    {
       Advance();
     }
 
     RMapIteratorBase(MapType map, bool end) :
       m_Map(map),
-      m_List(&map->m_Buckets[kBucketCount]),
+      m_List(nullptr),
       m_BucketIndex(kBucketCount),
       m_ListIndex(-1)
     {
@@ -95,6 +95,7 @@ public:
           m_ListIndex = -1;
           if (m_BucketIndex >= kBucketCount)
           {
+            m_List = nullptr;
             break;
           }
 
@@ -120,19 +121,21 @@ public:
   friend struct RMapIteratorBase;
 
   RMap() :
-    m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
     m_Size(0)
   {
 
   }
 
   RMap(const RMap<K, T> & rhs) :
-    m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
     m_Size(rhs.m_Size)
   {
-    for (std::size_t index = 0; index < kBucketCount; index++)
+    if(rhs.m_Size)
     {
-      m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
+      m_Buckets = std::make_unique<ContainerList[]>(kBucketCount);
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
     }
   }
 
@@ -140,9 +143,13 @@ public:
     m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
     m_Size(rhs.m_Size)
   {
-    for (std::size_t index = 0; index < kBucketCount; index++)
+    if (rhs.m_Size)
     {
-      m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      m_Buckets = std::make_unique<ContainerList[]>(kBucketCount);
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
     }
 
 #ifdef STORM_CHANGE_NOTIFIER
@@ -159,9 +166,15 @@ public:
   RMap<K, T> & operator = (const RMap<K, T> & rhs)
   {
     DestroyAllElements();
-    for (std::size_t index = 0; index < kBucketCount; index++)
+
+    if (rhs.m_Buckets)
     {
-      m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
+      CreateBuckets();
+
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
     }
 
     m_Size = rhs.m_Size;
@@ -172,9 +185,14 @@ public:
   RMap<K, T> & operator = (RMap<K, T> && rhs)
   {
     DestroyAllElements();
-    for (std::size_t index = 0; index < kBucketCount; index++)
+    if (rhs.m_Buckets)
     {
-      m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      CreateBuckets();
+
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
     }
 
     m_Size = rhs.m_Size;
@@ -190,6 +208,8 @@ public:
 
   T & Set(const K & k, const T & t)
   {
+    CreateBuckets();
+
     ContainerList * bucket = GetBucket(k);
     T * val = bucket->Find(k);
 
@@ -210,6 +230,8 @@ public:
   template <typename ... InitArgs>
   T & Emplace(const K & k, InitArgs && ... args)
   {
+    CreateBuckets();
+
     ContainerList * bucket = GetBucket(k);
     T * val = bucket->Find(k);
 
@@ -229,6 +251,11 @@ public:
 
   void Remove(const K & k)
   {
+    if (!m_Buckets)
+    {
+      return;
+    }
+
     ContainerList * bucket = GetBucket(k);
     if (bucket->Remove(k))
     {
@@ -239,6 +266,11 @@ public:
 
   T & Get(const K & k)
   {
+    if (!m_Buckets)
+    {
+      throw std::out_of_range("Invalid key");
+    }
+
     ContainerList * bucket = GetBucket(k);
     T * val = bucket->Find(k);
 
@@ -252,6 +284,11 @@ public:
 
   const T & Get(const K & k) const
   {
+    if (!m_Buckets)
+    {
+      throw std::out_of_range("Invalid key");
+    }
+
     ContainerList * bucket = GetBucket(k);
     T * val = bucket->Find(k);
 
@@ -265,12 +302,22 @@ public:
 
   T * TryGet(const K & k)
   {
+    if (!m_Buckets)
+    {
+      throw nullptr;
+    }
+
     ContainerList * bucket = GetBucket(k);
     return bucket->Find(k);
   }
 
   const T * TryGet(const K & k) const
   {
+    if (!m_Buckets)
+    {
+      throw nullptr;
+    }
+
     ContainerList * bucket = GetBucket(k);
     return bucket->Find(k);
   }
@@ -347,8 +394,21 @@ private:
 #endif
   }
 
+  void CreateBuckets()
+  {
+    if (!m_Buckets)
+    {
+      m_Buckets = std::make_unique<ContainerList[]>(kBucketCount);
+    }
+  }
+
   void DestroyAllElements()
   {
+    if (!m_Buckets)
+    {
+      return;
+    }
+
     for (std::size_t index = 0; index < kBucketCount; index++)
     {
       m_Buckets[index].Clear();
@@ -491,6 +551,10 @@ private:
       
       m_Values = rhs.m_Values;
       m_Size = rhs.m_Size;
+
+      rhs.m_Values = nullptr;
+      rhs.m_Size = 0;
+      rhs.m_Capacity = 0;
 
 #ifdef STORM_CHANGE_NOTIFIER
       bool has_callback = parent_info->m_Callback != nullptr || (parent_info->m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;

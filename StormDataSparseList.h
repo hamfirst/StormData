@@ -180,7 +180,7 @@ public:
   {
     DestroyAllElements();
 
-    if (rhs.m_HighestIndex >= m_Capacity)
+    if (rhs.m_HighestIndex >= (int)m_Capacity)
     {
       Deallocate(m_Values);
 
@@ -197,7 +197,7 @@ public:
       }
     }
 
-    for (int index = rhs.m_HighestIndex + 1; index < m_Capacity; index++)
+    for (int index = rhs.m_HighestIndex + 1; index < (int)m_Capacity; index++)
     {
       m_Values[index].m_Valid = false;
     }
@@ -382,7 +382,7 @@ public:
       }
       else
       {
-        if (empty_index != -1)
+        if (empty_index == -1)
         {
           empty_index = (int)index;
         }
@@ -586,7 +586,7 @@ private:
       if (m_Values[index].m_Valid)
       {
         new_info.m_ParentIndex = index;
-        SetParentInfo(m_Values[physical_index].m_Value, new_info);
+        SetParentInfo(m_Values[index].m_Value, new_info);
       }
     }
 #endif
@@ -601,7 +601,7 @@ private:
     {
       if (m_Values[index].m_Valid)
       {
-        m_Values[physical_index].m_Value.m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
+        m_Values[index].m_Value.m_ReflectionInfo.m_ParentInfo = &m_ReflectionInfo;
         bool child_has_flag = (m_Values[index].m_Value.m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0;
 
         if (child_has_flag)

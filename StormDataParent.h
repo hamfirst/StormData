@@ -37,6 +37,11 @@ struct SetParentInfoStruct
   {
 
   }
+
+  static void MoveParentInfo(T & src, T & dst)
+  {
+
+  }
 };
 
 template <typename T>
@@ -72,6 +77,12 @@ struct SetBasicParentInfo
   static void ClearFlag(T & value, StormDataParentInfoFlags flags)
   {
     value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
+  }
+  
+  static void MoveParentInfo(T & src, T & dst)
+  {
+    dst.m_ReflectionInfo = src.m_ReflectionInfo;
+    src.m_ReflectionInfo = {};
   }
 };
 
@@ -164,6 +175,15 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
     auto visitor = [&](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::ClearFlag(f.Get(), flags); };
     StormReflVisitEach(value, visitor);
   }
+
+  static void MoveParentInfo(T & src, T & dst)
+  {
+    dst.m_ReflectionInfo = src.m_ReflectionInfo;
+    src.m_ReflectionInfo = {};
+
+    auto visitor = [](auto src, auto dst) { SetParentInfoStruct<typename decltype(src)::member_type>::MoveParentInfo(src.Get(), dst.Get()); };
+    StormReflVisitEach(src, dst, visitor);
+  }
 };
 
 template <typename T, int i>
@@ -205,6 +225,14 @@ struct SetParentInfoStruct<T[i]>
     for (int index = 0; index < i; index++)
     {
       SetParentInfoStruct<T>::ClearFlag(value[index], flags);
+    }
+  }
+
+  static void MoveParentInfo(T(&src)[i], T(&dst)[i])
+  {
+    for (int index = 0; index < i; index++)
+    {
+      SetParentInfoStruct<T>::MoveParentInfo(src[index], dst[index]);
     }
   }
 };
@@ -264,6 +292,17 @@ struct SetHashMapParentInfo
     value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
     for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::ClearFlag(t.second, flags); };
   }
+
+  static void MoveParentInfo(T & src, T & dst)
+  {
+    dst.m_ReflectionInfo = src.m_ReflectionInfo;
+    src.m_ReflectionInfo = {};
+
+    for (auto src_itr = src.begin(), dst_itr = dst.begin(), end = src.end(); src_itr != end; ++src_itr)
+    {
+      SetParentInfoStruct<typename T::ContainerType>::MoveParentInfo(src_itr->second, dst_itr->second);
+    }
+  }
 };
 
 template <class T>
@@ -302,10 +341,17 @@ void ClearNotifyCallback(T & t, StormDataNotifyCallback callback, void * user_pt
 }
 
 template <typename T>
+void MoveParentInfo(T & src, T & dst)
+{
+  SetParentInfoStruct<T>::MoveParentInfo(src, dst);
+}
+
+template <typename T>
 void InitializeParentInfo(T & value)
 {
   StormReflectionParentInfo default_info{};
   SetParentInfo(value, default_info);
 }
+
 
 #endif
