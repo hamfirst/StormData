@@ -154,7 +154,7 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
 
   static void ClearParentCallback(T & value)
   {
-    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+    ClearFlag(value, (StormDataParentInfoFlags)~(uint32_t)StormDataParentInfoFlags::kParentHasCallback);
     if (value.m_ReflectionInfo.m_Callback == nullptr)
     {
       auto visitor = [](auto f) { SetParentInfoStruct<typename decltype(f)::member_type>::ClearParentCallback(f.Get()); };

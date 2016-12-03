@@ -33,7 +33,7 @@ public:
   }
 
   REnum(EnumType val) :
-    m_Value(val.m_Value)
+    m_Value(val)
   {
   }
   

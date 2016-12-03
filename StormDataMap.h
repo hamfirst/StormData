@@ -41,16 +41,16 @@ public:
       return m_ListIndex == rhs.m_ListIndex;
     }
 
-    std::pair<std::size_t, ValueType> operator *() const
+    std::pair<K, ValueType> operator *() const
     {
       ContainerType data = m_Map->m_Buckets[m_BucketIndex].m_Values[m_ListIndex];
-      return std::pair<std::size_t, ValueType>(data.m_Key, data.m_Value);
+      return std::pair<K, ValueType>(data.m_Key, data.m_Value);
     }
 
-    StormDataHelpers::RTempPair<std::size_t, ValueType> operator ->() const
+    StormDataHelpers::RTempPair<K, ValueType> operator ->() const
     {
       ContainerType data = m_Map->m_Buckets[m_BucketIndex].m_Values[m_ListIndex];
-      return StormDataHelpers::RTempPair<std::size_t, ValueType>(data.m_Key, data.m_Value);
+      return StormDataHelpers::RTempPair<K, ValueType>(data.m_Key, data.m_Value);
     }
 
     void operator++()
