@@ -392,6 +392,26 @@ public:
     Compressed();
   }
 
+  bool HasAt(std::size_t index) const
+  {
+    if (m_HighestIndex == -1)
+    {
+      return false;
+    }
+
+    if (index >= (std::size_t)m_HighestIndex)
+    {
+      return false;
+    }
+
+    if (m_Values[index].m_Valid == false)
+    {
+      return false;
+    }
+
+    return true;
+  }
+
   T & operator[](std::size_t index)
   {
     if (m_HighestIndex == -1)

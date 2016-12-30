@@ -366,6 +366,24 @@ public:
     Compressed();
   }
 
+  bool HasAt(int logical_index) const
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return true;
+      }
+
+      if (m_Indices[test] > (uint32_t)logical_index)
+      {
+        return false;
+      }
+    }
+
+    return false;
+  }
+
   T & operator[](int logical_index)
   {
     for (size_t test = 0; test < m_Size; test++)
