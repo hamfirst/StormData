@@ -178,33 +178,7 @@ public:
 
   RSparseList<T> & operator = (const RSparseList<T> & rhs)
   {
-    DestroyAllElements();
-
-    if (rhs.m_HighestIndex >= (int)m_Capacity)
-    {
-      Deallocate(m_Values);
-
-      m_Values = Allocate<ContainerData>(rhs.m_Capacity);
-      m_Capacity = rhs.m_Capacity;
-    }
-
-    for (int index = 0; index <= rhs.m_HighestIndex; index++)
-    {
-      m_Values[index].m_Valid = rhs.m_Values[index].m_Valid;
-      if (rhs.m_Values[index].m_Valid)
-      {
-        new(&m_Values[index].m_Value) T(rhs.m_Values[index].m_Value);
-      }
-    }
-
-    for (int index = rhs.m_HighestIndex + 1; index < (int)m_Capacity; index++)
-    {
-      m_Values[index].m_Valid = false;
-    }
-
-    m_HighestIndex = rhs.m_HighestIndex;
-
-    InitAllElements();
+    Copy(rhs);
     Set();
 
     return *this;
@@ -212,22 +186,7 @@ public:
 
   RSparseList<T> & operator = (RSparseList<T> && rhs)
   {
-    DestroyAllElements();
-
-    if (m_Capacity > 0)
-    {
-      Deallocate(m_Values);
-    }
-
-    m_HighestIndex = rhs.m_HighestIndex;
-    m_Capacity = rhs.m_Capacity;
-    m_Values = rhs.m_Values;
-
-    rhs.m_HighestIndex = -1;
-    rhs.m_Capacity = 0;
-    rhs.m_Values = nullptr;
-
-    UpdateAllElements();
+    Move(rhs);
     Set();
 
     return *this;
@@ -655,6 +614,67 @@ private:
 #endif
   }
 
+  void SetRaw(const RSparseList<T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RSparseList<T> && rhs)
+  {
+    Move(std::move(rhs));
+  }
+
+  void Copy(const RSparseList<T> & rhs)
+  {
+    DestroyAllElements();
+
+    if (rhs.m_HighestIndex >= (int)m_Capacity)
+    {
+      Deallocate(m_Values);
+
+      m_Values = Allocate<ContainerData>(rhs.m_Capacity);
+      m_Capacity = rhs.m_Capacity;
+    }
+
+    for (int index = 0; index <= rhs.m_HighestIndex; index++)
+    {
+      m_Values[index].m_Valid = rhs.m_Values[index].m_Valid;
+      if (rhs.m_Values[index].m_Valid)
+      {
+        new(&m_Values[index].m_Value) T(rhs.m_Values[index].m_Value);
+      }
+    }
+
+    for (int index = rhs.m_HighestIndex + 1; index < (int)m_Capacity; index++)
+    {
+      m_Values[index].m_Valid = false;
+    }
+
+    m_HighestIndex = rhs.m_HighestIndex;
+
+    InitAllElements();
+  }
+
+  void Move(RSparseList<T> && rhs)
+  {
+    DestroyAllElements();
+
+    if (m_Capacity > 0)
+    {
+      Deallocate(m_Values);
+    }
+
+    m_HighestIndex = rhs.m_HighestIndex;
+    m_Capacity = rhs.m_Capacity;
+    m_Values = rhs.m_Values;
+
+    rhs.m_HighestIndex = -1;
+    rhs.m_Capacity = 0;
+    rhs.m_Values = nullptr;
+
+    UpdateAllElements();
+  }
+
   void Cleared()
   {
 #ifdef STORM_CHANGE_NOTIFIER
@@ -730,10 +750,11 @@ private:
     T m_Value;
   };
 
+  template <typename T, typename Enable>
+  friend struct StormDataJson;
+
   int m_HighestIndex;
-
   std::size_t m_Capacity;
-
   ContainerData * m_Values;
 
   STORM_CHANGE_NOTIFIER_INFO;

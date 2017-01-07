@@ -186,32 +186,7 @@ public:
 
   RMergeList<T> & operator = (const RMergeList<T> & rhs)
   {
-    for (std::size_t index = 0; index < m_Size; index++)
-    {
-      m_Values[index].~T();
-    }
-
-    if (rhs.m_Size > m_Capacity)
-    {
-      Deallocate(m_Values);
-      Deallocate(m_Indices);
-
-      m_Indices = Allocate<uint32_t>(rhs.m_Capacity);
-      m_Values = Allocate<T>(rhs.m_Capacity);
-
-      m_Capacity = rhs.m_Capacity;
-    }
-
-    for (std::size_t index = 0; index < rhs.m_Size; index++)
-    {
-      m_Indices[index] = rhs.m_Indices[index];
-      new(&m_Values[index]) T(rhs.m_Values[index]);
-    }
-
-    m_Size = rhs.m_Size;
-    m_HighestIndex = rhs.m_HighestIndex;
-
-    InitAllElements();
+    Copy(rhs);
     Set();
 
     return *this;
@@ -219,30 +194,7 @@ public:
 
   RMergeList<T> & operator = (RMergeList<T> && rhs)
   {
-    for (std::size_t index = 0; index < m_Size; index++)
-    {
-      m_Values[index].~T();
-    }
-
-    if (m_Capacity > 0)
-    {
-      Deallocate(m_Values);
-      Deallocate(m_Indices);
-    }
-
-    m_HighestIndex = rhs.m_HighestIndex;
-    m_Indices = rhs.m_Indices;
-    m_Values = rhs.m_Values;
-    m_Size = rhs.m_Size;
-    m_Capacity = rhs.m_Capacity;
-
-    rhs.m_HighestIndex = -1;
-    rhs.m_Size = 0;
-    rhs.m_Capacity = 0;
-    rhs.m_Indices = nullptr;
-    rhs.m_Values = nullptr;
-
-    UpdateAllElements();
+    Move(std::move(rhs));
     Set();
 
     return *this;
@@ -350,7 +302,7 @@ public:
     }
   }
 
-  std::size_t HighestIndex()
+  int HighestIndex()
   {
     return m_HighestIndex;
   }
@@ -631,6 +583,74 @@ private:
 #endif
   }
 
+  void SetRaw(const RMergeList<T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RMergeList<T> && rhs)
+  {
+    Move(rhs);
+  }
+
+  void Copy(const RMergeList<T> & rhs)
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[index].~T();
+    }
+
+    if (rhs.m_Size > m_Capacity)
+    {
+      Deallocate(m_Values);
+      Deallocate(m_Indices);
+
+      m_Indices = Allocate<uint32_t>(rhs.m_Capacity);
+      m_Values = Allocate<T>(rhs.m_Capacity);
+
+      m_Capacity = rhs.m_Capacity;
+    }
+
+    for (std::size_t index = 0; index < rhs.m_Size; index++)
+    {
+      m_Indices[index] = rhs.m_Indices[index];
+      new(&m_Values[index]) T(rhs.m_Values[index]);
+    }
+
+    m_Size = rhs.m_Size;
+    m_HighestIndex = rhs.m_HighestIndex;
+
+    InitAllElements();
+  }
+
+  void Move(RMergeList<T> && rhs)
+  {
+    for (std::size_t index = 0; index < m_Size; index++)
+    {
+      m_Values[index].~T();
+    }
+
+    if (m_Capacity > 0)
+    {
+      Deallocate(m_Values);
+      Deallocate(m_Indices);
+    }
+
+    m_HighestIndex = rhs.m_HighestIndex;
+    m_Indices = rhs.m_Indices;
+    m_Values = rhs.m_Values;
+    m_Size = rhs.m_Size;
+    m_Capacity = rhs.m_Capacity;
+
+    rhs.m_HighestIndex = -1;
+    rhs.m_Size = 0;
+    rhs.m_Capacity = 0;
+    rhs.m_Indices = nullptr;
+    rhs.m_Values = nullptr;
+
+    UpdateAllElements();
+  }
+
   void Cleared()
   {
 #ifdef STORM_CHANGE_NOTIFIER
@@ -690,6 +710,9 @@ private:
     ReflectionNotifyRemoveObject(m_ReflectionInfo, logical_index);
 #endif
   }
+
+  template <typename T, typename Enable>
+  friend struct StormDataJson;
 
   int m_HighestIndex;
 

@@ -165,37 +165,14 @@ public:
 
   RMap<K, T> & operator = (const RMap<K, T> & rhs)
   {
-    DestroyAllElements();
-
-    if (rhs.m_Buckets)
-    {
-      CreateBuckets();
-
-      for (std::size_t index = 0; index < kBucketCount; index++)
-      {
-        m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
-      }
-    }
-
-    m_Size = rhs.m_Size;
+    Copy(rhs);
     Set();
     return *this;
   }
 
   RMap<K, T> & operator = (RMap<K, T> && rhs)
   {
-    DestroyAllElements();
-    if (rhs.m_Buckets)
-    {
-      CreateBuckets();
-
-      for (std::size_t index = 0; index < kBucketCount; index++)
-      {
-        m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
-      }
-    }
-
-    m_Size = rhs.m_Size;
+    Move(std::move(rhs));
     Set();
     return *this;
   }
@@ -434,6 +411,49 @@ private:
 #endif
   }
 
+  void SetRaw(const RMap<K, T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RMap<K, T> && rhs)
+  {
+    Move(rhs);
+  }
+
+  void Copy(const RMap<K, T> & rhs)
+  {
+    DestroyAllElements();
+
+    if (rhs.m_Buckets)
+    {
+      CreateBuckets();
+
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].CopyFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
+    }
+
+    m_Size = rhs.m_Size;
+  }
+
+  void Move(RMap<K, T> && rhs)
+  {
+    DestroyAllElements();
+    if (rhs.m_Buckets)
+    {
+      CreateBuckets();
+
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
+    }
+
+    m_Size = rhs.m_Size;
+  }
+
   void Cleared()
   {
 #ifdef STORM_CHANGE_NOTIFIER
@@ -454,6 +474,8 @@ private:
     new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = nullptr;
     new_info.m_ParentIndex = (uint64_t)key;
+    new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
+      (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
     SetParentInfo(value, new_info);
 
     if (DoNotifyCallback(m_ReflectionInfo) == false)
@@ -664,6 +686,10 @@ private:
       m_Size = 0;
     }
   };
+
+
+  template <typename T, typename Enable>
+  friend struct StormDataJson;
 
   std::unique_ptr<ContainerList[]> m_Buckets;
   std::size_t m_Size;

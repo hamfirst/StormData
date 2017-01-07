@@ -133,6 +133,14 @@ private:
 #endif
   }
 
+  void SetRaw(EnumType val)
+  {
+    m_Value = val;
+  }
+
+  template <typename T, typename Enable>
+  friend struct StormDataJson;
+
   EnumType m_Value;
   STORM_CHANGE_NOTIFIER_INFO;
 };

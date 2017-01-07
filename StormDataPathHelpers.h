@@ -112,6 +112,11 @@ namespace StormDataPathHelpers
         return false;
       }
 
+      if (t.HasAt((std::size_t)index) == false)
+      {
+        return false;
+      }
+
       if (*str != ']')
       {
         return false;
@@ -140,12 +145,18 @@ namespace StormDataPathHelpers
         return false;
       }
 
+      if (t.HasAt((int)index) == false)
+      {
+        return false;
+      }
+
       if (*str != ']')
       {
         return false;
       }
 
       str++;
+
       return callable(t[(int)index], str);
     }
   };
@@ -168,13 +179,19 @@ namespace StormDataPathHelpers
         return false;
       }
 
+      auto val = t.TryGet(index);
+      if (val == nullptr)
+      {
+        return false;
+      }
+
       if (*str != ']')
       {
         return false;
       }
 
       str++;
-      return callable(t[(int)index], str);
+      return callable(*val, str);
     }
   };
 }

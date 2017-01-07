@@ -698,6 +698,19 @@ private:
 #endif
   }
 
+  void SetRaw(const std::string & rhs)
+  {
+    m_Value = rhs;
+  }
+
+  void SetRaw(std::string && rhs)
+  {
+    m_Value = std::move(rhs);
+  }
+
+  template <typename T, typename Enable>
+  friend struct StormDataJson;
+
   std::string m_Value;
   STORM_CHANGE_NOTIFIER_INFO;
 };

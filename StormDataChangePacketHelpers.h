@@ -6,6 +6,7 @@
 
 #include "StormDataJson.h"
 #include "StormDataPath.h"
+#include "StormDataJsonUtil.h"
 
 template <typename T> class RSparseList;
 template <typename T> class RMergeList;
@@ -16,12 +17,48 @@ namespace StormDataChangePacketHelpers
   bool ParseNotifyChangeType(ReflectionNotifyChangeType & type, const char * str, const char *& result);
   bool ParseIndex(uint64_t & val, const char * str, const char *& result);
 
+  template <typename T, bool IsDataRefl>
+  struct StormDataApplySetDataRefl
+  {
+    static void Process(T & t) { }
+  };
+
+  template <typename T>
+  struct StormDataApplySetDataRefl<T, true>
+  {
+    static void Process(T & t) 
+    {
+      ReflectionNotifySet(t.m_ReflectionInfo, StormReflEncodeJson(t));
+    }
+  };
+
+  template <typename T, bool IsClass>
+  struct StormDataApplySetClass
+  {
+    static void Process(T & t) { }
+  };
+
+  template <typename T>
+  struct StormDataApplySetClass<T, true>
+  {
+    static void Process(T & t)
+    {
+      StormDataApplySetDataRefl<T, StormDataCheckReflectable<T>::value>::Process(t);
+    }
+  };
+
   template <typename T>
   struct StormDataApplySet
   {
     static bool Process(T & t, const char * result)
     {
-      return StormReflJson<T>::Parse(t, result, result);
+      if (StormDataJson<T>::ParseRaw(t, result, result) == false)
+      {
+        return false;
+      }
+
+      StormDataApplySetClass<T, std::is_class<T>::value>::Process(t);
+      return true;
     }
   };
 
@@ -109,8 +146,14 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RSparseList<T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.EmplaceAt((std::size_t)index);
-      return StormReflJson<T>::Parse(elem, data_str, data_str);
+      T val;
+      if(StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      {
+        return false;
+      }
+
+      t.EmplaceAt((std::size_t)index, std::move(val));
+      return true;
     }
 
     const char * m_Data;
@@ -121,8 +164,14 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMergeList<T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.EmplaceAt((std::size_t)index);
-      return StormReflJson<T>::Parse(elem, data_str, data_str);
+      T val;
+      if (StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      {
+        return false;
+      }
+
+      t.EmplaceAt((std::size_t)index, std::move(val));
+      return true;
     }
 
     const char * m_Data;
@@ -133,8 +182,14 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMap<K, T> & t, uint64_t index, const char * data_str)
     {
-      auto & elem = t.Set((std::size_t)index, T{});
-      return StormReflJson<T>::Parse(elem, data_str, data_str);
+      T val;
+      if (StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      {
+        return false;
+      }
+
+      t.Set((K)index, val);
+      return true;
     }
   };
 
@@ -172,7 +227,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(RMap<K, T> & t, uint64_t index)
     {
-      t.Remove((std::size_t)index);
+      t.Remove((K)index);
       return true;
     }
   };

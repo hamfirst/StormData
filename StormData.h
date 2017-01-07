@@ -55,11 +55,13 @@ struct StormReflectionParentInfo
     InitializeParentInfo(*this); \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
     MoveParentInfo(rhs, *this); \
+    StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
   } \
   TypeName & TypeName::operator = (const TypeName & rhs) \
   { \
     InitializeParentInfo(*this); \
     StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflElementwiseCopy(dst.Get(), src.Get()); }); \
+    StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
   } \
@@ -67,6 +69,7 @@ struct StormReflectionParentInfo
   { \
     InitializeParentInfo(*this); \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
+    StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
   } \

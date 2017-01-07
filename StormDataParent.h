@@ -23,6 +23,11 @@ struct SetParentInfoStruct
 
   }
 
+  static void SetParent(T & t, StormReflectionParentInfo * parent_info)
+  {
+
+  }
+
   static void ClearParentCallback(T & t)
   {
 
@@ -50,6 +55,11 @@ struct SetBasicParentInfo
   static void Set(T & value, const StormReflectionParentInfo & info)
   {
     value.m_ReflectionInfo = info;
+  }
+
+  static void SetParent(T & value, StormReflectionParentInfo * parent_info)
+  {
+    value.m_ReflectionInfo.m_ParentInfo = parent_info;
   }
 
   static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
@@ -134,6 +144,11 @@ struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectabl
     StormReflVisitEach(value, parent_setter);
   }
 
+  static void SetParent(T & value, StormReflectionParentInfo * parent_info)
+  {
+    value.m_ReflectionInfo.m_ParentInfo = parent_info;
+  }
+
   static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
   {
     value.m_ReflectionInfo.m_Callback = callback;
@@ -204,6 +219,14 @@ struct SetParentInfoStruct<T[i]>
     }
   }
 
+  static void SetParent(T(&value)[i], StormReflectionParentInfo * parent_info)
+  {
+    for (int index = 0; index < i; index++)
+    {
+      value[index].m_ReflectionInfo.m_ParentInfo = parent_info;
+    }
+  }
+
   static void ClearParentCallback(T(&value)[i])
   {
     for (int index = 0; index < i; index++)
@@ -256,6 +279,11 @@ struct SetHashMapParentInfo
     }
   }
 
+  static void SetParent(T & value, StormReflectionParentInfo * parent_info)
+  {
+    value.m_ReflectionInfo.m_ParentInfo = parent_info;
+  }
+
   static void SetCallback(T & value, StormDataNotifyCallback callback, void * user_ptr)
   {
     value.m_ReflectionInfo.m_Callback = callback;
@@ -274,7 +302,7 @@ struct SetHashMapParentInfo
 
   static void ClearParentCallback(T & value)
   {
-    ClearFlag(value, ~StormDataParentInfoFlags::kParentHasCallback);
+    ClearFlag(value, (StormDataParentInfoFlags)~(uint32_t)StormDataParentInfoFlags::kParentHasCallback);
     if (value.m_ReflectionInfo.m_Callback == nullptr)
     {
       for (auto t : value) { SetParentInfoStruct<typename T::ContainerType>::ClearParentCallback(t.second); };
@@ -344,6 +372,12 @@ template <typename T>
 void MoveParentInfo(T & src, T & dst)
 {
   SetParentInfoStruct<T>::MoveParentInfo(src, dst);
+}
+
+template <typename T>
+void SetParentInfoPointer(T & t, StormReflectionParentInfo * parent_info)
+{
+  SetParentInfoStruct<T>::SetParent(t, parent_info);
 }
 
 template <typename T>
