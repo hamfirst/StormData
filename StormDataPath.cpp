@@ -133,7 +133,7 @@ bool StormDataParsePathComponents(const char * path, std::vector<StormDataPathCo
   }
 }
 
-std::string StormDataConvertPahtComponentList(const std::vector<StormDataPathComponent> & comps)
+std::string StormDataConvertPathComponentList(const std::vector<StormDataPathComponent> & comps)
 {
   std::string val;
   for (auto & comp : comps)

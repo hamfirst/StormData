@@ -226,11 +226,11 @@ public:
     }
   }
 
-  void Remove(const K & k)
+  bool Remove(const K & k)
   {
     if (!m_Buckets)
     {
-      return;
+      return false;
     }
 
     ContainerList * bucket = GetBucket(k);
@@ -238,7 +238,10 @@ public:
     {
       m_Size--;
       Removed(k);
+      return true;
     }
+
+    return false;
   }
 
   T & Get(const K & k)
@@ -281,7 +284,7 @@ public:
   {
     if (!m_Buckets)
     {
-      throw nullptr;
+      return nullptr;
     }
 
     ContainerList * bucket = GetBucket(k);
@@ -292,7 +295,7 @@ public:
   {
     if (!m_Buckets)
     {
-      throw nullptr;
+      return nullptr;
     }
 
     ContainerList * bucket = GetBucket(k);

@@ -44,7 +44,7 @@ struct StormDataPathComponent
 };
 
 bool StormDataParsePathComponents(const char * path, std::vector<StormDataPathComponent> & comps);
-std::string StormDataConvertPahtComponentList(const std::vector<StormDataPathComponent> & comps);
+std::string StormDataConvertPathComponentList(const std::vector<StormDataPathComponent> & comps);
 
 inline bool StormDataParsePath(const char * path, const char * pattern)
 {

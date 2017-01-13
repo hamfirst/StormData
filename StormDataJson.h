@@ -392,6 +392,8 @@ struct StormReflJson<RSparseList<T>, void>
     }
 
     str++;
+    StormReflJsonAdvanceWhiteSpace(str);
+
     while (true)
     {
       if (*str == '}')
@@ -574,6 +576,8 @@ struct StormReflJson<RMergeList<T>, void>
     }
 
     str++;
+    StormReflJsonAdvanceWhiteSpace(str);
+
     while (true)
     {
       if (*str == '}')

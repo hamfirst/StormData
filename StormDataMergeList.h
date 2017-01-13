@@ -250,7 +250,7 @@ public:
     T * elem = InsertInternal(logical_index, existing_elem, physical_index);
     if (existing_elem)
     {
-      *t = val;
+      *elem = val;
     }
     else
     {
