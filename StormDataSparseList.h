@@ -750,7 +750,7 @@ private:
     T m_Value;
   };
 
-  template <typename T, typename Enable>
+  template <typename Type, typename Enable>
   friend struct StormDataJson;
 
   int m_HighestIndex;

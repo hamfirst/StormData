@@ -691,7 +691,7 @@ private:
   };
 
 
-  template <typename T, typename Enable>
+  template <typename Type, typename Enable>
   friend struct StormDataJson;
 
   std::unique_ptr<ContainerList[]> m_Buckets;

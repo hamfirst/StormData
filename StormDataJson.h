@@ -10,6 +10,9 @@
 #include "StormDataMap.h"
 #include "StormDataJsonUtil.h"
 
+template <typename T, typename Enable = void>
+struct StormDataJson;
+
 
 template <typename T, bool IsDataRefl>
 struct StormDataJsonParseRawDataRefl
