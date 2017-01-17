@@ -697,20 +697,18 @@ struct StormReflJson<RMap<K, T>, void>
       return;
     }
 
-    auto & elem = *itr;
     sb += "{\"";
-    sb += std::to_string(elem.first);
+    sb += std::to_string(itr->first);
     sb += "\":";
-    StormReflJson<T>::Encode(elem.second, sb);
+    StormReflJson<T>::Encode(itr->second, sb);
     ++itr;
 
     while (itr != t.end())
     {
-      auto & elem = *itr;
       sb += ",\"";
-      sb += std::to_string(elem.first);
+      sb += std::to_string(itr->first);
       sb += "\":";
-      StormReflJson<T>::Encode(elem.second, sb);
+      StormReflJson<T>::Encode(itr->second, sb);
       ++itr;
     }
 
@@ -727,25 +725,23 @@ struct StormReflJson<RMap<K, T>, void>
       return;
     }
 
-    auto & elem = *itr;
     sb += "{\n";
     StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
 
     sb += '\"';
-    sb += std::to_string(elem.first);
+    sb += std::to_string(itr->first);
     sb += "\": ";
-    StormReflJson<T>::EncodePretty(elem.second, sb, indent + 1);
+    StormReflJson<T>::EncodePretty(itr->second, sb, indent + 1);
     ++itr;
 
     while (itr != t.end())
     {
-      auto & elem = *itr;
       sb += ",\n";
       StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
       sb += '\"';
-      sb += std::to_string(elem.first);
+      sb += std::to_string(itr->first);
       sb += "\": ";
-      StormReflJson<T>::EncodePretty(elem.second, sb, indent + 1);
+      StormReflJson<T>::EncodePretty(itr->second, sb, indent + 1);
       ++itr;
     }
 
