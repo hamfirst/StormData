@@ -118,7 +118,7 @@ struct StormDataJsonParseRawClass<T, true>
   }
 };
 
-template <typename T, typename Enable = void>
+template <typename T, typename Enable>
 struct StormDataJson
 {
   static bool ParseRaw(T & t, const char * str, const char *& result)
