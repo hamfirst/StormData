@@ -19,7 +19,7 @@ public:
   template <typename MapType, typename ContainerType, typename BucketType, typename ValueType>
   struct RMapIteratorBase
   {
-    RMapIteratorBase(const RMapIteratorBase & rhs) : m_Map(rhs.m_List), m_List(rhs.m_List), m_BucketIndex(rhs.m_BucketIndex), m_ListIndex(rhs.m_ListIndex) { }
+    RMapIteratorBase(const RMapIteratorBase & rhs) : m_Map((MapType)rhs.m_List), m_List((BucketType)rhs.m_List), m_BucketIndex(rhs.m_BucketIndex), m_ListIndex(rhs.m_ListIndex) { }
 
     bool operator != (const RMapIteratorBase & rhs) const
     {
