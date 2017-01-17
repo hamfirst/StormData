@@ -1,6 +1,7 @@
 #pragma once
 
 #include "StormData.h"
+#include "StormDataJsonUtil.h"
 
 #include <StormRefl/StormReflMetaFuncs.h>
 
@@ -121,7 +122,7 @@ struct SetParentInfoStruct<REnum<EnumType>> : public SetBasicParentInfo<REnum<En
 };
 
 template <typename T>
-struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectable<T>::value>>
+struct SetParentInfoStruct<T, typename std::enable_if_t<StormReflCheckReflectable<T>::value && StormDataCheckReflectable<T>::value>>
 {
   static void Set(T & value, const StormReflectionParentInfo & info)
   {
@@ -231,7 +232,7 @@ struct SetParentInfoStruct<T[i]>
   {
     for (int index = 0; index < i; index++)
     {
-      SetParentInfoStruct<T>::ClearParentCallback(value[index], flags);
+      SetParentInfoStruct<T>::ClearParentCallback(value[index]);
     }
   }
 

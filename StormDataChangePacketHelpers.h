@@ -28,7 +28,7 @@ namespace StormDataChangePacketHelpers
   {
     static void Process(T & t) 
     {
-      ReflectionNotifySet(t.m_ReflectionInfo, StormReflEncodeJson(t));
+      ReflectionNotifySetObject(t.m_ReflectionInfo, StormReflEncodeJson(t));
     }
   };
 

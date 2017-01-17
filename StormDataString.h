@@ -93,11 +93,43 @@ public:
     return *this;
   }
 
-  RString & operator = (RString && val) = default;
+  RString & operator = (RString && val)
+  {
+    m_Value = val.m_Value;
+    Modified();
+    return *this;
+  }
 
   bool operator == (const RString & val) const
   {
     return m_Value == val.m_Value;
+  }
+
+  void SetIfDifferent(const std::string & val)
+  {
+    if (m_Value != val)
+    {
+      m_Value = val;
+      Modified();
+    }
+  }
+
+  void SetIfDifferent(const char * val)
+  {
+    if (m_Value != val)
+    {
+      m_Value = val;
+      Modified();
+    }
+  }
+
+  void SetIfDifferent(const RString & val)
+  {
+    if (m_Value != val.m_Value)
+    {
+      m_Value = val.m_Value;
+      Modified();
+    }
   }
 
   auto begin()

@@ -290,16 +290,18 @@ public:
     RemoveInternal(itr.m_PhysicalIndex);
   }
 
-  void RemoveAt(std::size_t logical_index)
+  bool RemoveAt(std::size_t logical_index)
   {
     for (size_t test = 0; test < m_Size; test++)
     {
       if (m_Indices[test] == logical_index)
       {
         RemoveInternal(test);
-        return;
+        return true;
       }
     }
+
+    return false;
   }
 
   int HighestIndex()
