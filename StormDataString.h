@@ -43,11 +43,6 @@ public:
   {
   }
 
-  operator std::string() const
-  {
-    return m_Value;
-  }
-
   operator const std::string & () const
   {
     return m_Value;
