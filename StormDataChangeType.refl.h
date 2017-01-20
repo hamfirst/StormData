@@ -10,4 +10,3 @@ enum STORM_REFL_ENUM class ReflectionNotifyChangeType
   kInsert,
   kRemove,
 };
-
