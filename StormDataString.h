@@ -28,6 +28,15 @@ public:
 #endif
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RString(RString && rhs, StormReflectionParentInfo * new_parent) noexcept :
+    m_Value(rhs.m_Value)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
   RString(const std::string & val) noexcept :
     m_Value(val)
   {
@@ -94,6 +103,15 @@ public:
     Modified();
     return *this;
   }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RString && rhs, StormReflectionParentInfo * new_parent) noexcept
+  {
+    m_Value = rhs.m_Value;
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
 
   bool operator == (const RString & val) const
   {

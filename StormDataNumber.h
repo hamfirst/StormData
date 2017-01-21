@@ -33,6 +33,15 @@ public:
 #endif
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RBool(RBool && val, StormReflectionParentInfo * new_parent) :
+    m_Value(val.m_Value)
+  {
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
   bool operator = (bool val)
   {
     Set(val);
@@ -50,6 +59,15 @@ public:
     Set(rhs.m_Value);
     return *this;
   }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RBool && val, StormReflectionParentInfo * new_parent)
+  {
+    m_Value = val.m_Value;
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
 
   operator bool() const
   {
@@ -132,6 +150,15 @@ public:
 #endif
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RNumber(RNumber && val, StormReflectionParentInfo * new_parent) noexcept :
+    m_Value(val.m_Value)
+  {
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
   NumericType operator = (NumericType val) noexcept
   {
     Set(val);
@@ -149,6 +176,15 @@ public:
     Set(rhs.m_Value);
     return *this;
   }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RNumber && val, StormReflectionParentInfo * new_parent) noexcept
+  {
+    m_Value = val.m_Value;
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
 
   operator NumericType() const
   {

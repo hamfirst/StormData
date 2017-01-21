@@ -166,6 +166,23 @@ public:
     UpdateAllElements();
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RSparseList(RSparseList<T> && rhs, StormReflectionParentInfo * new_parent) :
+    m_HighestIndex(rhs.m_HighestIndex),
+    m_Capacity(rhs.m_Capacity),
+    m_Values(rhs.m_Values)
+  {
+    rhs.m_HighestIndex = -1;
+    rhs.m_Capacity = 0;
+    rhs.m_Values = nullptr;
+
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+
+    UpdateAllElements();
+  }
+#endif
+
   ~RSparseList()
   {
     DestroyAllElements();
@@ -191,6 +208,15 @@ public:
 
     return *this;
   }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RSparseList<T> && rhs, StormReflectionParentInfo * new_parent)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+    Move(rhs);
+  }
+#endif
 
   void Clear()
   {
@@ -510,7 +536,11 @@ private:
         values[index].m_Valid = m_Values[index].m_Valid;
         if (m_Values[index].m_Valid)
         {
+#ifdef STORM_CHANGE_NOTIFIER
+          StormDataRelocateConstruct(std::move(m_Values[index], &values[index]));
+#else
           new (&values[index].m_Value) T(std::move(m_Values[index].m_Value));
+#endif
 
           m_Values[index].m_Value.~T();
         }
@@ -526,6 +556,8 @@ private:
 
     m_Values = values;
     m_Capacity = requested_size;
+
+    UpdateAllElements();
   }
 
   void DestroyAllElements()

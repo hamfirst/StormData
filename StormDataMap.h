@@ -158,6 +158,25 @@ public:
 #endif
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RMap(RMap<K, T> && rhs, StormReflectionParentInfo * new_parent) :
+    m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
+    m_Size(rhs.m_Size)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+
+    if (rhs.m_Size)
+    {
+      m_Buckets = std::make_unique<ContainerList[]>(kBucketCount);
+      for (std::size_t index = 0; index < kBucketCount; index++)
+      {
+        m_Buckets[index].MoveFrom(rhs.m_Buckets[index], GetParentInfo());
+      }
+    }
+  }
+#endif
+
   ~RMap()
   {
 
@@ -177,6 +196,15 @@ public:
     return *this;
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RMap<K, T> && rhs, StormReflectionParentInfo * new_parent)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+    Move(std::move(rhs));
+  }
+#endif
+
   void Clear()
   {
     DestroyAllElements();
@@ -192,7 +220,7 @@ public:
 
     if (val == nullptr)
     {
-      T & ret_val = bucket->Emplace(k, t);
+      T & ret_val = bucket->Emplace(k, &m_ReflectionInfo, t);
       m_Size++;
       Inserted(k, ret_val);
       return ret_val;
@@ -214,7 +242,7 @@ public:
 
     if (val == nullptr)
     {
-      T & ret_val = bucket->Emplace(k, std::forward<InitArgs>(args)...);
+      T & ret_val = bucket->Emplace(k, &m_ReflectionInfo, std::forward<InitArgs>(args)...);
       m_Size++;
       Inserted(k, ret_val);
       return ret_val;
@@ -543,7 +571,7 @@ private:
       Clear();
       if (rhs.m_Size > m_Capacity)
       {
-        Grow(rhs.m_Capacity);
+        Grow(rhs.m_Capacity, parent_info);
       }
 
       m_Size = rhs.m_Size;
@@ -607,11 +635,11 @@ private:
     }
 
     template <typename ... InitArgs>
-    T & Emplace(K key, InitArgs && ... args)
+    T & Emplace(K key, StormReflectionParentInfo * parent_info, InitArgs && ... args)
     {
       if (m_Size == m_Capacity)
       {
-        Grow();
+        Grow(parent_info);
       }
 
       m_Values[m_Size].m_Key = key;
@@ -653,13 +681,13 @@ private:
       return false;
     }
 
-    void Grow()
+    void Grow(StormReflectionParentInfo * parent_info)
     {
       std::size_t new_size = (m_Capacity == 0 ? 1 : m_Capacity * 2);
-      Grow(new_size);
+      Grow(new_size, parent_info);
     }
 
-    void Grow(std::size_t new_size)
+    void Grow(std::size_t new_size, StormReflectionParentInfo * parent_info)
     {
       ContainerData * values = Allocate<ContainerData>(new_size);
 
@@ -668,7 +696,11 @@ private:
         for (std::size_t index = 0; index < m_Size; index++)
         {
           values[index].m_Key = m_Values[index].m_Key;
+#ifdef STORM_CHANGE_NOTIFIER
+          StormDataRelocateConstruct(std::move(m_Values[index]), &values[index], parent_info);
+#else
           new (&values[index].m_Value) T(std::move(m_Values[index].m_Value));
+#endif
           m_Values[index].m_Value.~T();
         }
 

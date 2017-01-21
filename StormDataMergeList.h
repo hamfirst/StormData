@@ -170,6 +170,27 @@ public:
     UpdateAllElements();
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  RMergeList(RMergeList<T> && rhs, StormReflectionParentInfo * new_parent) :
+    m_HighestIndex(rhs.m_HighestIndex),
+    m_Capacity(rhs.m_Capacity),
+    m_Size(rhs.m_Size),
+    m_Indices(rhs.m_Indices),
+    m_Values(rhs.m_Values)
+  {
+    rhs.m_HighestIndex = -1;
+    rhs.m_Capacity = 0;
+    rhs.m_Size = 0;
+    rhs.m_Indices = nullptr;
+    rhs.m_Values = nullptr;
+
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+
+    UpdateAllElements();
+  }
+#endif
+
   ~RMergeList()
   {
     if (m_Capacity > 0)
@@ -199,6 +220,16 @@ public:
 
     return *this;
   }
+
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RMergeList<T> && rhs, StormReflectionParentInfo * new_parent)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+    Move(std::move(rhs));
+  }
+#endif
 
   void Clear()
   {
@@ -436,7 +467,12 @@ private:
       for (std::size_t index = 0; index < m_Size; index++)
       {
         indices[index] = m_Indices[index];
+
+#ifdef STORM_CHANGE_NOTIFIER
+        StormDataRelocateConstruct(std::move(m_Values[index]), &values[index], &m_ReflectionInfo);
+#else
         new (&values[index]) T(std::move(m_Values[index]));
+#endif
 
         m_Values[index].~T();
       }
@@ -448,6 +484,8 @@ private:
     m_Indices = indices;
     m_Values = values;
     m_Capacity = requested_size;
+
+    UpdateAllElements();
   }
 
   void MoveForward(std::size_t start_index)

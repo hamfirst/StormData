@@ -1,5 +1,5 @@
 
-cmake_minimum_required(VERSION 3.5)
+cmake_minimum_required(VERSION 3.1)
 
 include_directories(.. ../External)
 add_definitions(-DUSE_MBED -D_LINUX)

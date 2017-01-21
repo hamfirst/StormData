@@ -32,6 +32,15 @@ public:
 #endif
   }
 
+#ifdef STORM_CHANGE_NOTIFIER
+  REnum(REnum<EnumType> && rhs, StormReflectionParentInfo * new_parent) :
+    m_Value(rhs.m_Value)
+  {
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
   REnum(EnumType val) :
     m_Value(val)
   {
@@ -67,6 +76,15 @@ public:
     Set(rhs.m_Value);
     return m_Value;
   }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(REnum<EnumType> && rhs, StormReflectionParentInfo * new_parent)
+  {
+    m_Value = std::move(rhs.m_Value);
+    m_ReflectionInfo = rhs.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
 
   operator int() const
   {
