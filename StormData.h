@@ -66,7 +66,7 @@ struct StormDataRelocateObject
 };
 
 template <typename T>
-struct StormDataRelocateObject<typename T, true>
+struct StormDataRelocateObject<T, true>
 {
   static void Construct(T && src, void * dst, StormReflectionParentInfo * new_parent)
   {
