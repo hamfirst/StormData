@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <type_traits>
 
 #include <StormRefl/StormRefl.h>
 
@@ -66,7 +67,7 @@ struct StormDataRelocateObject
 };
 
 template <typename T>
-struct StormDataRelocateObject<typename T, true>
+struct StormDataRelocateObject<T, true>
 {
   static void Construct(T && src, void * dst, StormReflectionParentInfo * new_parent)
   {
