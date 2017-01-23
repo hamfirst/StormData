@@ -92,6 +92,46 @@ void StormDataRelocateConstruct(T && src, void * dst, StormReflectionParentInfo 
   StormDataRelocateObject<T, StormDataCheckReflectable<T>::value>::Construct(std::move(src), dst, new_parent);
 }
 
+template <typename T, bool IsDataRefl>
+struct StormDataSetRaw
+{
+  static void Copy(const T & src, T & dst)
+  {
+    StormReflCopy(dst, src);
+  }
+
+  static void Move(T && src, T & dst)
+  {
+    StormReflMove(dst, std::move(src));
+  }
+};
+
+template <typename T>
+struct StormDataSetRaw<T, true>
+{
+  static void Copy(const T & src, T & dst)
+  {
+    dst.SetRaw(src);
+  }
+
+  static void Move(T && src, T & dst)
+  {
+    dst.SetRaw(std::move(src));
+  }
+};
+
+template <typename T>
+void StormDataSetRawCopy(const T & src, T & dst)
+{
+  StormDataSetRaw<T, StormDataCheckReflectable<T>::value>::Copy(src, dst);
+}
+
+template <typename T>
+void StormDataSetRawMove(T && src, T & dst)
+{
+  StormDataSetRaw<T, StormDataCheckReflectable<T>::value>::Move(std::move(src), dst);
+}
+
 #define STORM_CHANGE_NOTIFIER
 #define STORM_CHANGE_NOTIFIER_INFO \
   public: \
@@ -106,6 +146,8 @@ void StormDataRelocateConstruct(T && src, void * dst, StormReflectionParentInfo 
   TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent); \
   TypeName & operator = (const TypeName & rhs); \
   TypeName & operator = (TypeName && rhs); \
+  void SetRaw(const TypeName & rhs); \
+  void SetRaw(TypeName && rhs); \
   void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent); \
 
 #define STORM_DATA_DEFAULT_CONSTRUCTION_IMPL(TypeName) \
@@ -116,7 +158,7 @@ void StormDataRelocateConstruct(T && src, void * dst, StormReflectionParentInfo 
   TypeName::TypeName(const TypeName & rhs) \
   { \
     InitializeParentInfo(*this); \
-    StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflElementwiseCopy(dst.Get(), src.Get()); }); \
+    StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflCopy(dst.Get(), src.Get()); }); \
   } \
   TypeName::TypeName(TypeName && rhs) \
   { \
@@ -133,19 +175,23 @@ void StormDataRelocateConstruct(T && src, void * dst, StormReflectionParentInfo 
   } \
   TypeName & TypeName::operator = (const TypeName & rhs) \
   { \
-    InitializeParentInfo(*this); \
-    StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflElementwiseCopy(dst.Get(), src.Get()); }); \
-    StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
+    StormReflVisitEach(static_cast<const TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawCopy(src.Get(), dst.Get()); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
   } \
   TypeName & TypeName::operator = (TypeName && rhs) \
   { \
-    InitializeParentInfo(*this); \
-    StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
-    StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
+    StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawMove(std::move(src.Get()), dst.Get()); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
+  } \
+  void TypeName::SetRaw(const TypeName & rhs) \
+  { \
+    StormReflVisitEach(static_cast<const TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawCopy(src.Get(), dst.Get()); }); \
+  } \
+  void TypeName::SetRaw(TypeName && rhs) \
+  { \
+    StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawMove(std::move(src.Get()), dst.Get()); }); \
   } \
   void TypeName::Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent) \
   { \

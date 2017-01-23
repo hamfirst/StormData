@@ -77,6 +77,11 @@ public:
     return m_Value;
   }
 
+  void SetRaw(EnumType val)
+  {
+    m_Value = val;
+  }
+
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(REnum<EnumType> && rhs, StormReflectionParentInfo * new_parent)
   {
@@ -149,11 +154,6 @@ private:
 
     ReflectionNotifySet(m_ReflectionInfo, std::string(ToString()));
 #endif
-  }
-
-  void SetRaw(EnumType val)
-  {
-    m_Value = val;
   }
 
   template <typename T, typename Enable>

@@ -209,6 +209,16 @@ public:
     return *this;
   }
 
+  void SetRaw(const RSparseList<T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RSparseList<T> && rhs)
+  {
+    Move(std::move(rhs));
+  }
+
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(RSparseList<T> && rhs, StormReflectionParentInfo * new_parent)
   {
@@ -644,16 +654,6 @@ private:
 
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this));
 #endif
-  }
-
-  void SetRaw(const RSparseList<T> & rhs)
-  {
-    Copy(rhs);
-  }
-
-  void SetRaw(RSparseList<T> && rhs)
-  {
-    Move(std::move(rhs));
   }
 
   void Copy(const RSparseList<T> & rhs)

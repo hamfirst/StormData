@@ -60,6 +60,11 @@ public:
     return *this;
   }
 
+  void SetRaw(bool val)
+  {
+    m_Value = val;
+  }
+
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(RBool && val, StormReflectionParentInfo * new_parent)
   {
@@ -109,10 +114,6 @@ private:
 #endif
   }
 
-  void SetRaw(bool val)
-  {
-    m_Value = val;
-  }
 
   template <typename T, typename Enable>
   friend struct StormDataJson;
@@ -175,6 +176,11 @@ public:
   {
     Set(rhs.m_Value);
     return *this;
+  }
+
+  void SetRaw(NumericType val)
+  {
+    m_Value = val;
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
@@ -480,11 +486,6 @@ private:
 
     ReflectionNotifySet(m_ReflectionInfo, m_Value);
 #endif
-  }
-
-  void SetRaw(NumericType val)
-  {
-    m_Value = val;
   }
 
   template <typename T, typename Enable>

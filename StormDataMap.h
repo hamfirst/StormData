@@ -196,6 +196,16 @@ public:
     return *this;
   }
 
+  void SetRaw(const RMap<K, T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RMap<K, T> && rhs)
+  {
+    Move(std::move(rhs));
+  }
+
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(RMap<K, T> && rhs, StormReflectionParentInfo * new_parent)
   {
@@ -440,16 +450,6 @@ private:
 
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this));
 #endif
-  }
-
-  void SetRaw(const RMap<K, T> & rhs)
-  {
-    Copy(rhs);
-  }
-
-  void SetRaw(RMap<K, T> && rhs)
-  {
-    Move(rhs);
   }
 
   void Copy(const RMap<K, T> & rhs)

@@ -104,6 +104,16 @@ public:
     return *this;
   }
 
+  void SetRaw(const std::string & rhs)
+  {
+    m_Value = rhs;
+  }
+
+  void SetRaw(std::string && rhs)
+  {
+    m_Value = std::move(rhs);
+  }
+
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(RString && rhs, StormReflectionParentInfo * new_parent) noexcept
   {
@@ -741,16 +751,6 @@ private:
 
     ReflectionNotifySet(m_ReflectionInfo, m_Value);
 #endif
-  }
-
-  void SetRaw(const std::string & rhs)
-  {
-    m_Value = rhs;
-  }
-
-  void SetRaw(std::string && rhs)
-  {
-    m_Value = std::move(rhs);
   }
 
   template <typename T, typename Enable>

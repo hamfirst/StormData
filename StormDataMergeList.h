@@ -221,6 +221,15 @@ public:
     return *this;
   }
 
+  void SetRaw(const RMergeList<T> & rhs)
+  {
+    Copy(rhs);
+  }
+
+  void SetRaw(RMergeList<T> && rhs)
+  {
+    Move(std::move(rhs));
+  }
 
 #ifdef STORM_CHANGE_NOTIFIER
   void Relocate(RMergeList<T> && rhs, StormReflectionParentInfo * new_parent)
@@ -621,16 +630,6 @@ private:
 
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this));
 #endif
-  }
-
-  void SetRaw(const RMergeList<T> & rhs)
-  {
-    Copy(rhs);
-  }
-
-  void SetRaw(RMergeList<T> && rhs)
-  {
-    Move(rhs);
   }
 
   void Copy(const RMergeList<T> & rhs)
