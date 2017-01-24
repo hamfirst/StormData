@@ -4,6 +4,7 @@
 #include <type_traits>
 
 #include <StormRefl/StormRefl.h>
+#include <StormRefl/StormReflMetaFuncs.h>
 
 struct ReflectionChangeNotification;
 
