@@ -349,6 +349,11 @@ public:
     return m_HighestIndex;
   }
 
+  std::size_t NumElements()
+  {
+    return m_Size;
+  }
+
   void Compress()
   {
     for (std::size_t index = 0; index < m_Size; index++)
