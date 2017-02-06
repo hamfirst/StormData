@@ -518,7 +518,13 @@ private:
     for (std::size_t index = start_index; index < m_Size - 1; index++)
     {
       m_Indices[index] = m_Indices[index + 1];
+
+#ifdef STORM_CHANGE_NOTIFIER
+      StormDataRelocateConstruct(std::move(m_Values[index + 1]), &m_Values[index], &m_ReflectionInfo);
+#else
       new (&m_Values[index]) T(std::move(m_Values[index + 1]));
+#endif
+
 
       m_Values[index + 1].~T();
     }

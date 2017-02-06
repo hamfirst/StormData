@@ -203,7 +203,7 @@ public:
 
   RSparseList<T> & operator = (RSparseList<T> && rhs)
   {
-    Move(rhs);
+    Move(std::move(rhs));
     Set();
 
     return *this;
@@ -224,7 +224,7 @@ public:
   {
     m_ReflectionInfo = rhs.m_ReflectionInfo;
     m_ReflectionInfo.m_ParentInfo = new_parent;
-    Move(rhs);
+    Move(std::move(rhs));
   }
 #endif
 
@@ -261,7 +261,7 @@ public:
   }
 
   template <typename ... InitArgs>
-  void EmplaceBack(InitArgs && ... args)
+  T & EmplaceBack(InitArgs && ... args)
   {
     if (m_HighestIndex + 1 == m_Capacity)
     {
@@ -547,7 +547,7 @@ private:
         if (m_Values[index].m_Valid)
         {
 #ifdef STORM_CHANGE_NOTIFIER
-          StormDataRelocateConstruct(std::move(m_Values[index], &values[index]));
+          StormDataRelocateConstruct(std::move(m_Values[index].m_Value), &values[index].m_Value, &m_ReflectionInfo);
 #else
           new (&values[index].m_Value) T(std::move(m_Values[index].m_Value));
 #endif
