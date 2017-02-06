@@ -329,7 +329,7 @@ struct StormReflJson<RSparseList<T>, void>
       return;
     }
 
-    auto & elem = *itr;
+    auto elem = *itr;
     sb += "{\"";
     sb += std::to_string(elem.first);
     sb += "\":";
@@ -338,7 +338,7 @@ struct StormReflJson<RSparseList<T>, void>
 
     while(itr != t.end())
     {
-      auto & elem = *itr;
+      auto elem = *itr;
       sb += ",\"";
       sb += std::to_string(elem.first);
       sb += "\":";
@@ -359,7 +359,7 @@ struct StormReflJson<RSparseList<T>, void>
       return;
     }
 
-    auto & elem = *itr;
+    auto elem = *itr;
     sb += "{\n";
     StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
 
@@ -371,7 +371,7 @@ struct StormReflJson<RSparseList<T>, void>
 
     while (itr != t.end())
     {
-      auto & elem = *itr;
+      auto elem = *itr;
       sb += ",\n";
       StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
       sb += '\"';
