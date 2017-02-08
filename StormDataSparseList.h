@@ -394,7 +394,7 @@ public:
       return false;
     }
 
-    if (index >= (std::size_t)m_HighestIndex)
+    if (index > (std::size_t)m_HighestIndex)
     {
       return false;
     }
@@ -414,7 +414,7 @@ public:
       throw std::out_of_range("Invalid index");
     }
 
-    if (index >= (std::size_t)m_HighestIndex)
+    if (index > (std::size_t)m_HighestIndex)
     {
       throw std::out_of_range("Invalid index");
     }
