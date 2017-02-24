@@ -740,6 +740,66 @@ public:
     return std::hash<std::string>()(m_Value);
   }
 
+  bool BasicCaseInsensitiveCompare(const RString & rhs)
+  {
+    auto my_size = size();
+    if (rhs.size() != my_size)
+    {
+      return false;
+    }
+
+
+    for(std::size_t index = 0; index < my_size; index++)
+    {
+      if (tolower(m_Value[index]) != tolower(rhs.m_Value[index]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool BasicCaseInsensitiveCompare(const std::string & rhs)
+  {
+    auto my_size = size();
+    if (rhs.size() != my_size)
+    {
+      return false;
+    }
+
+    for (std::size_t index = 0; index < my_size; index++)
+    {
+      if (tolower(m_Value[index]) != tolower(rhs[index]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  bool BasicCaseInsensitiveCompare(const char * rhs)
+  {
+    auto my_size = size();
+    auto other_size = strlen(rhs);
+    if (other_size != my_size)
+    {
+      return false;
+    }
+
+    for (std::size_t index = 0; index < my_size; index++)
+    {
+      if (tolower(m_Value[index]) != tolower(rhs[index]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+
 private:
   void Modified()
   {

@@ -452,7 +452,13 @@ private:
   template <typename Elem>
   Elem * Allocate(std::size_t count)
   {
-    return (Elem *)malloc(sizeof(Elem) * count);
+    auto ptr = (Elem *)malloc(sizeof(Elem) * count);
+    if (ptr == nullptr)
+    {
+      throw std::bad_alloc();
+    }
+
+    return ptr;
   }
 
   void Deallocate(void * ptr)

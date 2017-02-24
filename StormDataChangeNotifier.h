@@ -19,6 +19,8 @@ struct ReflectionChangeNotification
 
 bool DoNotifyCallback(StormReflectionParentInfo & parent_info);
 
+void FinishChangeNotification(StormReflectionParentInfo * parent_info, ReflectionChangeNotification & notification);
+
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, bool value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int8_t value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, int16_t value);
