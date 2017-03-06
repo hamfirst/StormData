@@ -28,5 +28,6 @@
     <ClInclude Include="StormDataMergeList.h" />
     <ClInclude Include="StormDataSparseList.h" />
     <ClInclude Include="StormDataUtil.h" />
+    <ClInclude Include="StormDataListUtil.h" />
   </ItemGroup>
 </Project>

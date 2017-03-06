@@ -56,6 +56,7 @@
     <ClInclude Include="StormDataJson.h" />
     <ClInclude Include="StormDataJsonUtil.h" />
     <ClInclude Include="StormDataList.h" />
+    <ClInclude Include="StormDataListUtil.h" />
     <ClInclude Include="StormDataMap.h" />
     <ClInclude Include="StormDataMergeList.h" />
     <ClInclude Include="StormDataNumber.h" />
