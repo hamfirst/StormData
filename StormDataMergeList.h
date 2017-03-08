@@ -521,6 +521,7 @@ private:
 
   void MoveBackward(std::size_t start_index)
   {
+    m_Values[start_index].~T();
     for (std::size_t index = start_index; index < m_Size - 1; index++)
     {
       m_Indices[index] = m_Indices[index + 1];
