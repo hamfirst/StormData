@@ -515,7 +515,12 @@ private:
     }
 
     std::string data;
+
+#ifdef STORM_CHANGE_MINIMAL
+    StormReflSerializeDefaultJson(value, data);
+#else
     StormReflEncodeJson(value, data);
+#endif
 
     ReflectionNotifyInsertObject(m_ReflectionInfo, key, data);
 #endif

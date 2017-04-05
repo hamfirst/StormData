@@ -51,7 +51,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[index], str);
+      return callable(t[index], nullptr, str);
     }
   };
 
@@ -86,7 +86,7 @@ namespace StormDataPathHelpers
       bool result = false;
       auto field_visitor = [&](auto f)
       {
-        result = callable(f.Get(), str);
+        result = callable(f.Get(), &f, str);
       };
 
       StormReflVisitField(t, field_visitor, field_name_hash);
@@ -123,7 +123,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[(int)index], str);
+      return callable(t[(int)index], nullptr, str);
     }
   };
 
@@ -157,7 +157,7 @@ namespace StormDataPathHelpers
 
       str++;
 
-      return callable(t[(int)index], str);
+      return callable(t[(int)index], nullptr, str);
     }
   };
 
@@ -191,7 +191,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(*val, str);
+      return callable(*val, nullptr, str);
     }
   };
 }

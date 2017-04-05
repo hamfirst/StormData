@@ -29,5 +29,9 @@
     <ClInclude Include="StormDataSparseList.h" />
     <ClInclude Include="StormDataUtil.h" />
     <ClInclude Include="StormDataListUtil.h" />
+    <ClInclude Include="StormDataDelta.h" />
+    <ClInclude Include="StormDataSync.h" />
+    <ClInclude Include="StormDataPolymorphic.h" />
+    <ClInclude Include="StormDataTypeDatabase.h" />
   </ItemGroup>
 </Project>

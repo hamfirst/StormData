@@ -13,7 +13,7 @@ bool StormDataVisitPath(T & t, Visitor & visitor, const char * str)
     return visitor(t, str);
   }
 
-  auto recall_visitor = [&](auto & new_t, const char * new_str)
+  auto recall_visitor = [&](auto & new_t, auto * field_data, const char * new_str)
   {
     return StormDataVisitPath(new_t, visitor, new_str);
   };

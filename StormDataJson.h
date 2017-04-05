@@ -8,6 +8,7 @@
 #include "StormDataEnum.h"
 #include "StormDataList.h"
 #include "StormDataMap.h"
+#include "StormDataPolymorphic.h"
 #include "StormDataJsonUtil.h"
 
 template <typename T, typename Enable = void>
@@ -143,6 +144,12 @@ struct StormReflJson<RBool, void>
     Encode(t, sb);
   }
 
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "false";
+  }
+
   static bool Parse(RBool & t, const char * str, const char *& result)
   {
     if (StormReflJsonMatchStr(str, result, "true"))
@@ -199,6 +206,12 @@ struct StormReflJson<RNumber<T>, void>
     StormReflJson<T>::Encode(t, sb);
   }
 
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "0";
+  }
+
   static bool Parse(RNumber<T> & t, const char * str, const char *& result)
   {
     T val;
@@ -243,6 +256,12 @@ struct StormReflJson<RString, void>
     StormReflJson<std::string>::EncodePretty(t, sb, indent);
   }
 
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "\"\"";
+  }
+
   static bool Parse(RString & t, const char * str, const char *& result)
   {
     std::string val;
@@ -285,6 +304,12 @@ struct StormReflJson<REnum<T>, void>
   static void EncodePretty(const REnum<T> & t, StringBuilder & sb, int indent)
   {
     StormReflJson<T>::EncodePretty(t, sb, indent);
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "\"\"";
   }
 
   static bool Parse(REnum<T> & t, const char * str, const char *& result)
@@ -384,6 +409,12 @@ struct StormReflJson<RSparseList<T>, void>
     sb += '\n';
     StormReflJsonHelpers::StormReflEncodeIndent(indent, sb);
     sb += "}";
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "{}";
   }
 
   template <typename ItemParser>
@@ -638,6 +669,12 @@ struct StormReflJson<RMergeList<T>, void>
     }
   }
 
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "{}";
+  }
+
   static bool Parse(RMergeList<T> & t, const char * str, const char *& result)
   {
     auto default_parse = [&](const char *& str, std::size_t index)
@@ -750,6 +787,12 @@ struct StormReflJson<RMap<K, T>, void>
     sb += "}";
   }
 
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "{}";
+  }
+
   template <typename ItemParser>
   static bool ParseList(RMap<K, T> & t, const char * str, const char *& result, ItemParser && item_parser)
   {
@@ -858,5 +901,213 @@ struct StormDataJson<RMap<K, T>, void>
     };
 
     return StormReflJson<RMap<K, T>>::ParseList(t, str, result, raw_parse);
+  }
+};
+
+template <typename Base, typename TypeDatabase, typename TypeInfo>
+struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+{
+  template <class StringBuilder>
+  static void Encode(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb)
+  {
+    if (t.GetTypeInfo())
+    {
+      sb += "{\"T\":";
+      sb += std::to_string(t.GetTypeNameHash());
+      sb += ",\"D\":";
+      t.GetTypeInfo()->EncodeJson(t.GetValue(), sb);
+      sb += '}';
+    }
+    else
+    {
+      sb += "{}";
+    }
+  }
+
+  template <class StringBuilder>
+  static void EncodePretty(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb, int indent)
+  {
+    if (t.GetTypeInfo())
+    {
+      sb += "{\n";
+      StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
+      sb += "\"T\": ";
+      sb += std::to_string(t.GetTypeNameHash());
+      sb += ",\n";
+      StormReflJsonHelpers::StormReflEncodeIndent(indent + 1, sb);
+      sb += "\"D\": ";
+      t.GetTypeInfo()->EncodePrettyJson(t.GetValue(), sb, indent + 1);
+      sb += '\n';
+      StormReflJsonHelpers::StormReflEncodeIndent(indent, sb);
+      sb += '}';
+    }
+    else
+    {
+      sb += "{}";
+    }
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "{}";
+  }
+
+  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result)
+  {
+    StormReflJsonAdvanceWhiteSpace(str);
+    if (*str != '{')
+    {
+      return false;
+    }
+
+    str++;
+    StormReflJsonAdvanceWhiteSpace(str);
+
+    if (*str != '\"')
+    {
+      return false;
+    }
+
+    str++;
+
+    bool got_type = false;
+    bool got_data = false;
+
+    uint32_t type;
+    const char * data_start = nullptr;
+
+    while (true)
+    {
+      if (*str == 'T')
+      {
+        if (got_type)
+        {
+          return false;
+        }
+
+        str++;
+        if (*str != '\"')
+        {
+          return false;
+        }
+
+        str++;
+        StormReflJsonAdvanceWhiteSpace(str);
+
+        if (str != ':')
+        {
+          return false;
+        }
+
+        str++;
+        uint32_t type;
+        if (StormReflParseJson(type, str, str) == false)
+        {
+          return false;
+        }
+      }
+      else if (*str == 'D')
+      {
+        if (got_data)
+        {
+          return false;
+        }
+
+        str++;
+        if (*str != '\"')
+        {
+          return false;
+        }
+
+        str++;
+        StormReflJsonAdvanceWhiteSpace(str);
+
+        if (str != ':')
+        {
+          return false;
+        }
+
+        str++;
+        data_start = str;
+        if (StormReflJsonParseOverValue(str, str) == false)
+        {
+          return false;
+        }
+      }
+      else
+      {
+        return false;
+      }
+
+      if (got_data && got_type)
+      {
+        StormReflJsonAdvanceWhiteSpace(str);
+        if (str != '}')
+        {
+          return false;
+        }
+
+        break;
+      }
+      else
+      {
+        StormReflJsonAdvanceWhiteSpace(str);
+        if (str == '}')
+        {
+          break;
+        }
+
+        if (str != ',')
+        {
+          return false;
+        }
+
+        StormReflJsonAdvanceWhiteSpace(str);
+        if (*str != '\"')
+        {
+          return false;
+        }
+      }
+    }
+
+    if (got_type == false && got_data == false)
+    {
+      t.SetTypeFromNameHash(0);
+    }
+    else
+    {
+      if (got_type)
+      {
+        t.SetTypeFromNameHash(type);
+      }
+
+      if (got_data && t.GetTypeInfo() != nullptr)
+      {
+        if (t.GetTypeInfo()->ParseJson(&t, data_start) == false)
+        {
+          return false;
+        }
+      }
+    }
+
+    result = str;
+    return true;
+  }
+};
+
+template <typename Base, typename TypeDatabase, typename TypeInfo>
+struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+{
+  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result)
+  {
+    RPolymorphic<Base, TypeDatabase, TypeInfo> val;
+    if (!StormReflJson<T>::Parse(val, str, result))
+    {
+      return false;
+    }
+
+    t.SetRaw(std::move(val));
+    return true;
   }
 };

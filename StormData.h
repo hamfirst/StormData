@@ -134,6 +134,8 @@ void StormDataSetRawMove(T && src, T & dst)
 }
 
 #define STORM_CHANGE_NOTIFIER
+#define STORM_CHANGE_MINIMAL
+
 #define STORM_CHANGE_NOTIFIER_INFO \
   public: \
   STORM_REFL_IGNORE StormReflectionParentInfo m_ReflectionInfo

@@ -11,116 +11,6 @@ std::string StormDataCreateChangePacket(ReflectionNotifyChangeType type, uint64_
 bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data);
 bool StormDataParseChangePacket(ReflectionChangeNotification & notification, const char * data, const char *& result);
 
-template <class T>
-bool StormDataApplyChangePacketSet(T & t, const char * path, const char * data)
-{
-  if (*path == 0)
-  {
-    return StormDataChangePacketHelpers::StormDataApplySet<T>::Process(t, data);
-  }
-  else if (*path == ' ')
-  {
-    path++;
-    return StormDataChangePacketHelpers::StormDataApplySet<T>::Process(t, path);
-  }
-
-  auto visitor = [&](auto & new_t, const char * new_str)
-  {
-    return StormDataApplyChangePacketSet(new_t, new_str, data);
-  };
-
-  return StormDataVisitPathElement(t, visitor, path);
-}
-
-template <class T>
-bool StormDataApplyChangePacketClear(T & t, const char * path)
-{
-  if (*path == 0 || *path == ' ')
-  {
-    return StormDataChangePacketHelpers::StormDataApplyClear<T>::Process(t);
-  }
-
-  auto visitor = [&](auto & new_t, const char * new_str)
-  {
-    return StormDataApplyChangePacketClear(new_t, new_str);
-  };
-
-  return StormDataVisitPathElement(t, visitor, path);
-}
-
-template <class T>
-bool StormDataApplyChangePacketCompress(T & t, const char * path)
-{
-  if (*path == 0 || *path == ' ')
-  {
-    return StormDataChangePacketHelpers::StormDataApplyCompress<T>::Process(t);
-  }
-
-  auto visitor = [&](auto & new_t, const char * new_str)
-  {
-    return StormDataApplyChangePacketCompress(new_t, new_str);
-  };
-
-  return StormDataVisitPathElement(t, visitor, path);
-}
-
-template <class T>
-bool StormDataApplyChangePacketInsert(T & t, const char * path, uint64_t index, const char * data)
-{
-  if (*path == 0)
-  {
-    return StormDataChangePacketHelpers::StormDataApplyInsert<T>::Process(t, index, data);
-  }
-  else if(*path == ' ')
-  {
-    path++;
-    if (StormDataChangePacketHelpers::ParseIndex(index, path, path) == false)
-    {
-      return false;
-    }
-
-    if (*path != ' ')
-    {
-      return false;
-    }
-
-    path++;
-    return StormDataChangePacketHelpers::StormDataApplyInsert<T>::Process(t, index, path);
-  }
-
-  auto visitor = [&](auto & new_t, const char * new_str)
-  {
-    return StormDataApplyChangePacketInsert(new_t, new_str, index, data);
-  };
-
-  return StormDataVisitPathElement(t, visitor, path);
-}
-
-template <class T>
-bool StormDataApplyChangePacketRemove(T & t, const char * path, uint64_t index)
-{
-  if (*path == 0)
-  {
-    return StormDataChangePacketHelpers::StormDataApplyRemove<T>::Process(t, index);
-  }
-  else if (*path == ' ')
-  {
-    path++;
-    if (StormDataChangePacketHelpers::ParseIndex(index, path, path) == false)
-    {
-      return false;
-    }
-
-    return StormDataChangePacketHelpers::StormDataApplyRemove<T>::Process(t, index);
-  }
-
-  auto visitor = [&](auto & new_t, const char * new_str)
-  {
-    return StormDataApplyChangePacketRemove(new_t, new_str, index);
-  };
-
-  return StormDataVisitPathElement(t, visitor, path);
-}
 
 template <class T>
 bool StormDataApplyChangePacket(T & t, const char * str)
@@ -135,15 +25,17 @@ bool StormDataApplyChangePacket(T & t, const char * str)
   switch (type)
   {
   case ReflectionNotifyChangeType::kSet:
-    return StormDataApplyChangePacketSet(t, str, nullptr);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketSet<T>::Process(t, str, nullptr);
   case ReflectionNotifyChangeType::kClear:
-    return StormDataApplyChangePacketClear(t, str);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketClear<T>::Process(t, str);
   case ReflectionNotifyChangeType::kCompress:
-    return StormDataApplyChangePacketCompress(t, str);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketCompress<T>::Process(t, str);
   case ReflectionNotifyChangeType::kInsert:
-    return StormDataApplyChangePacketInsert(t, str, ~0, nullptr);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketInsert<T>::Process(t, str, ~0, nullptr);
   case ReflectionNotifyChangeType::kRemove:
-    return StormDataApplyChangePacketRemove(t, str, ~0);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketRemove<T>::Process(t, str, ~0);
+  case ReflectionNotifyChangeType::kRevert:
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, str);
   }
 
   return false;
@@ -155,15 +47,17 @@ bool StormDataApplyChangePacket(T & t, ReflectionNotifyChangeType type, const ch
   switch (type)
   {
   case ReflectionNotifyChangeType::kSet:
-    return StormDataApplyChangePacketSet(t, path, data);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketSet<T>::Process(t, path, data);
   case ReflectionNotifyChangeType::kClear:
-    return StormDataApplyChangePacketClear(t, path);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketClear<T>::Process(t, path);
   case ReflectionNotifyChangeType::kCompress:
-    return StormDataApplyChangePacketCompress(t, path);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketCompress<T>::Process(t, path);
   case ReflectionNotifyChangeType::kInsert:
-    return StormDataApplyChangePacketInsert(t, path, index, data);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketInsert<T>::Process(t, path, index, data);
   case ReflectionNotifyChangeType::kRemove:
-    return StormDataApplyChangePacketRemove(t, path, index);
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketRemove<T>::Process(t, path, index);
+  case ReflectionNotifyChangeType::kRevert:
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, path);
   }
 
   return false;

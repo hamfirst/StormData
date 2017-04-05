@@ -52,6 +52,7 @@
       <SubType>
       </SubType>
     </ClInclude>
+    <ClInclude Include="StormDataDelta.h" />
     <ClInclude Include="StormDataEnum.h" />
     <ClInclude Include="StormDataJson.h" />
     <ClInclude Include="StormDataJsonUtil.h" />
@@ -63,8 +64,11 @@
     <ClInclude Include="StormDataParent.h" />
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
+    <ClInclude Include="StormDataPolymorphic.h" />
     <ClInclude Include="StormDataSparseList.h" />
     <ClInclude Include="StormDataString.h" />
+    <ClInclude Include="StormDataSync.h" />
+    <ClInclude Include="StormDataTypeDatabase.h" />
     <ClInclude Include="StormDataTypes.h" />
     <ClInclude Include="StormDataUtil.h" />
   </ItemGroup>

@@ -138,6 +138,13 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
 
     notification.m_SubIndex = index;
     return true;
+  case ReflectionNotifyChangeType::kRevert:
+    if (*data != 0)
+    {
+      return false;
+    }
+
+    return true;
   }
 
   return false;

@@ -15,6 +15,7 @@ template <typename T> class REnum;
 template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
+template <class Base, class TypeDatabase, class TypeInfo> class RPolymorphic;
 
 template <typename T, typename Enable = void>
 struct SetParentInfoStruct
@@ -351,6 +352,84 @@ struct SetParentInfoStruct<RMap<K, T>> : public SetHashMapParentInfo<RMap<K, T>>
 
 };
 
+template <class Base, class TypeDatabase, class TypeInfo>
+struct SetBasicParentInfo<RPolymorphic<Base, TypeDatabase, TypeInfo>>
+{
+  static void Set(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, const StormReflectionParentInfo & info)
+  {
+    value.m_ReflectionInfo = info;
+    value.SetParentInfo();
+  }
+
+  static void SetParent(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormReflectionParentInfo * parent_info)
+  {
+    value.m_ReflectionInfo.m_ParentInfo = parent_info;
+  }
+
+  static void SetCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataNotifyCallback callback, void * user_ptr)
+  {
+    value.m_ReflectionInfo.m_Callback = callback;
+    value.m_ReflectionInfo.m_CallbackUserPtr = user_ptr;
+
+    if (value.GetTypeInfo())
+    {
+      value.GetTypeInfo()->SetParentInfoFlag(value.GetValue(), StormDataParentInfoFlags::kParentHasCallback);
+    }
+  }
+
+  static void ClearCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value)
+  {
+    value.m_ReflectionInfo.m_Callback = nullptr;
+    value.m_ReflectionInfo.m_CallbackUserPtr = nullptr;
+
+    if (value.GetTypeInfo())
+    {
+      value.GetTypeInfo()->ClearParentInfoCallback(value.GetValue());
+    }
+  }
+
+  static void ClearParentCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value)
+  {
+    ClearFlag(value, (StormDataParentInfoFlags)~(uint32_t)StormDataParentInfoFlags::kParentHasCallback);
+
+    if (value.m_ReflectionInfo.m_Callback == nullptr && value.GetTypeInfo())
+    {
+      value.GetTypeInfo()->ClearParentInfoCallback(value.GetValue());
+    }
+  }
+
+  static void SetFlag(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags |= (uint32_t)flags;
+
+    if (value.GetTypeInfo())
+    {
+      value.GetTypeInfo()->SetParentInfoFlag(value.GetValue(), flags);
+    }
+  }
+
+  static void ClearFlag(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataParentInfoFlags flags)
+  {
+    value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
+
+    if (value.GetTypeInfo())
+    {
+      value.GetTypeInfo()->ClearParentInfoFlag(value.GetValue(), flags);
+    }
+  }
+
+  static void MoveParentInfo(RPolymorphic<Base, TypeDatabase, TypeInfo> & src, RPolymorphic<Base, TypeDatabase, TypeInfo> & dst)
+  {
+    dst.m_ReflectionInfo = src.m_ReflectionInfo;
+    src.m_ReflectionInfo = {};
+
+    if (dst.GetTypeInfo() != nullptr && src.GetTypeNameHash() == dst.GetTypeNameHash())
+    {
+      value.GetTypeInfo()->MoveParentInfo(src.GetValue(), dst.GetValue());
+    }
+  }
+};
+
 template <typename T>
 void SetParentInfo(T & t, const StormReflectionParentInfo & info)
 {
@@ -364,9 +443,9 @@ void SetNotifyCallback(T & t, StormDataNotifyCallback callback, void * user_ptr)
 }
 
 template <typename T>
-void ClearNotifyCallback(T & t, StormDataNotifyCallback callback, void * user_ptr)
+void ClearNotifyCallback(T & t)
 {
-  SetParentInfoStruct<T>::ClearCallback(t, callback, user_ptr);
+  SetParentInfoStruct<T>::ClearCallback(t);
 }
 
 template <typename T>
