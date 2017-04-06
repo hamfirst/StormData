@@ -30,6 +30,7 @@ struct StormDataTypeInfo
 
   void(*SetParentInfo)(void * poly_ptr, const StormReflectionParentInfo & parent_info);
   void(*SetParentInfoFlag)(void * poly_ptr, StormDataParentInfoFlags flags);
+  void(*ClearParentInfoFlag)(void * poly_ptr, StormDataParentInfoFlags flags);
   void(*ClearParentInfoCallback)(void * poly_ptr);
   void(*MoveParentInfo)(void * src, void * dest);
 

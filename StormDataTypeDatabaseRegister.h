@@ -51,6 +51,7 @@ void StormDataTypeDatabase<Base, TypeInfo>::InitTypeInfo(TypeInfo & type_info)
 
   type_info.SetParentInfo = [](void * poly_ptr, const StormReflectionParentInfo & parent_info) { SetParentInfo(*(Class *)poly_ptr, parent_info); };
   type_info.SetParentInfoFlag = [](void * poly_ptr, StormDataParentInfoFlags flags) { SetParentInfoStruct<Class>::SetFlag(*(Class *)poly_ptr, flags); };
+  type_info.ClearParentInfoFlag = [](void * poly_ptr, StormDataParentInfoFlags flags) { SetParentInfoStruct<Class>::ClearFlag(*(Class *)poly_ptr, flags); };
   type_info.ClearParentInfoCallback = [](void * poly_ptr) { SetParentInfoStruct<Class>::ClearParentCallback(*(Class *)poly_ptr); };
   type_info.MoveParentInfo = [](void * src, void * dest) {SetParentInfoStruct<Class>::MoveParentInfo(*(Class *)src, *(Class *)dest); };
 

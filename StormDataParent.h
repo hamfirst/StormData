@@ -425,7 +425,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
 
     if (dst.GetTypeInfo() != nullptr && src.GetTypeNameHash() == dst.GetTypeNameHash())
     {
-      value.GetTypeInfo()->MoveParentInfo(src.GetValue(), dst.GetValue());
+      dst.GetTypeInfo()->MoveParentInfo(src.GetValue(), dst.GetValue());
     }
   }
 };

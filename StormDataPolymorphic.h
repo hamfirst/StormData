@@ -255,8 +255,8 @@ public:
 
 protected:
 
-  template <typename T>
-  friend struct SetBasicParentInfo;
+  template <typename T, typename Enable = void>
+  friend struct SetParentInfoStruct;
 
   void Modified()
   {
