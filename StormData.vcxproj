@@ -69,6 +69,7 @@
     <ClInclude Include="StormDataString.h" />
     <ClInclude Include="StormDataSync.h" />
     <ClInclude Include="StormDataTypeDatabase.h" />
+    <ClInclude Include="StormDataTypeDatabaseRegister.h" />
     <ClInclude Include="StormDataTypes.h" />
     <ClInclude Include="StormDataUtil.h" />
   </ItemGroup>
