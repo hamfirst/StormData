@@ -8,13 +8,6 @@
 #include <unordered_map>
 #include <type_traits>
 
-#include "StormDataChangeNotifier.h"
-#include "StormDataJson.h"
-#include "StormDataChangePacket.h"
-#include "StormDataParent.h"
-#include "StormDataDelta.h"
-#include "StormDataSync.h"
-
 struct StormDataTypeInfo
 {
   std::string m_Name;
@@ -57,27 +50,6 @@ struct StormDataTypeInfo
   }
 };
 
-template <typename TypeInfo, typename Class, typename ... BaseTypes>
-struct StormDataInitBaseClass
-{
-  static void Process(TypeInfo & type_info)
-  {
-
-  }
-};
-
-template <typename TypeInfo, typename Class, typename BaseType, typename ... BaseTypes>
-struct StormDataInitBaseClass<TypeInfo, Class, BaseType, BaseTypes...>
-{
-  static void Process(TypeInfo & type_info)
-  {
-    static_assert(std::is_base_of<BaseType, Class>::value, "Registering type that is not of the right base class");
-    type_info.m_BaseTypes.emplace_back(std::make_pair(StormReflTypeInfo<BaseType>::GetNameHash(), [](void * c) -> void * { auto ptr = (Class *)c; return (BaseType *)ptr; }));
-
-    StormDataInitBaseClass<TypeInfo, Class, BaseTypes...>::Process(type_info);
-  }
-};
-
 
 template <typename Base, typename TypeInfo>
 class StormDataTypeDatabase
@@ -88,41 +60,9 @@ public:
   static void InitTypeInfo(TypeInfo & type_info);
 
   template <typename Class, typename ... BaseTypes>
-  static void RegisterType()
-  {
-    static_assert(std::is_base_of<Base, Class>::value, "Registering type that is not of the right base class");
-    static_assert(std::is_same<Base, Class>::value || sizeof...(BaseTypes) > 0, "Registering type that does not have a base class specified");
+  static void RegisterType();
 
-    TypeInfo type_info;
-    InitTypeInfo<Class>(type_info);
-
-    type_info.m_BaseTypes.emplace_back(std::make_pair(StormReflTypeInfo<Class>::GetNameHash(), [](void * ptr) {return ptr; }));
-
-    StormDataInitBaseClass<TypeInfo, Class, BaseTypes...>::Process(type_info);
-
-    auto type_name_hash = StormReflTypeInfo<Class>::GetNameHash();
-    m_TypeList.emplace(std::make_pair(type_name_hash, type_info));
-  }
-
-  static void FinalizeTypes()
-  {
-    for (auto & elem : m_TypeList)
-    {
-      for (auto & base : elem.second.m_BaseTypes)
-      {
-        auto itr = m_TypeList.find(base.first);
-        if (itr == m_TypeList.end())
-        {
-          assert(false);
-        }
-
-        for (auto & base_base : itr->second.m_BaseTypes)
-        {
-          AddBaseTypesForType(elem.second, base_base.first, base_base.second);
-        }
-      }
-    }
-  }
+  static void FinalizeTypes();
 
   static TypeInfo * GetTypeInfo(uint32_t type_name_hash)
   {
@@ -137,29 +77,7 @@ public:
 
 private:
 
-  static void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *))
-  {
-    for (auto & base : type_info.m_BaseTypes)
-    {
-      if (base.first == base_type_hash)
-      {
-        return;
-      }
-    }
-
-    type_info.m_BaseTypes.emplace_back(std::make_pair(base_type_hash, CastFunc));
-
-    auto itr = m_TypeList.find(base_type_hash);
-    if (itr == m_TypeList.end())
-    {
-      assert(false);
-    }
-
-    for (auto & base_base : itr->second.m_BaseTypes)
-    {
-      AddBaseTypesForType(type_info, base_base.first, base_base.second);
-    }
-  }
+  static void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *));
 
 private:
 
