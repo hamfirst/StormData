@@ -76,4 +76,30 @@ namespace StormDataChangePacketHelpers
     val = index;
     return true;
   }
+
+  bool ParseIndex(uint32_t & val, const char * str, const char *& result)
+  {
+    if (*str < '0' || *str > '9')
+    {
+      return false;
+    }
+
+    uint32_t index = *str - '0';
+    while (true)
+    {
+      str++;
+
+      if (*str < '0' || *str > '9')
+      {
+        break;
+      }
+
+      index *= 10;
+      index += *str - '0';
+    }
+
+    result = str;
+    val = index;
+    return true;
+  }
 }

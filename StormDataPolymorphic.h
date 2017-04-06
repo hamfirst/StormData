@@ -28,9 +28,9 @@ public:
 
     m_TypeInfo = rhs.m_TypeInfo;
     m_TypeNameHash = rhs.m_TypeNameHash;
-    m_Data = t.GetTypeInfo()->HeapCreate();
+    m_Data = (Base *)GetTypeInfo()->HeapCreate();
 
-    t.GetTypeInfo()->CopyRaw(rhs.GetValue(), GetValue());
+    GetTypeInfo()->CopyRaw(rhs.GetValue(), GetValue());
     SetParentInfo();
   }
 
@@ -88,7 +88,7 @@ public:
   {
     if (m_Data)
     {
-      t.GetTypeInfo()->HeapFree(m_Data);
+      GetTypeInfo()->HeapFree(m_Data);
     }
   }
 
@@ -96,12 +96,14 @@ public:
   {
     SetRaw(rhs);
     Modified();
+    return *this;
   }
 
   RPolymorphic<Base, TypeDatabase, TypeInfo> & operator = (RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs)
   {
     SetRaw(std::move(rhs));
     Modified();
+    return *this;
   }
 
   void SetRaw(const RPolymorphic<Base, TypeDatabase, TypeInfo> & rhs)
@@ -115,7 +117,7 @@ public:
 
       if (m_Data != nullptr)
       {
-        t.GetTypeInfo()->HeapFree(m_Data);
+        GetTypeInfo()->HeapFree(m_Data);
       }
 
       m_TypeInfo = nullptr;
@@ -128,23 +130,23 @@ public:
     {
       if (m_Data != nullptr)
       {
-        t.GetTypeInfo()->HeapFree(m_Data);
+        GetTypeInfo()->HeapFree(m_Data);
       }
 
       m_TypeInfo = rhs.m_TypeInfo;
       m_TypeNameHash = rhs.m_TypeNameHash;
-      m_Data = t.GetTypeInfo()->HeapCreate();
+      m_Data = (Base *)GetTypeInfo()->HeapCreate();
       SetParentInfo();
     }
 
-    t.GetTypeInfo()->CopyRaw(rhs.GetValue(), GetValue());
+    GetTypeInfo()->CopyRaw(rhs.GetValue(), GetValue());
   }
 
   void SetRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs)
   {
     if (m_Data != nullptr)
     {
-      t.GetTypeInfo()->HeapFree(m_Data);
+      GetTypeInfo()->HeapFree(m_Data);
     }
 
     if (rhs.m_TypeInfo == 0)
@@ -196,16 +198,44 @@ public:
     return m_Data;
   }
 
-  const TypeInfo * GetTypeInfo()
+  template <typename T>
+  T * GetAs()
+  {
+    return GetTypeInfo() ? (T *)GetTypeInfo()->CastTo(m_Data, StormReflTypeInfo<T>::GetNameHash()) : nullptr;
+  }
+
+  template <typename T>
+  const T * GetAs() const
+  {
+    return GetTypeInfo() ? (T *)GetTypeInfo()->CastTo(m_Data, StormReflTypeInfo<T>::GetNameHash()) : nullptr;
+  }
+
+  void * GetAs(uint32_t type_name_hash)
+  {
+    return GetTypeInfo() ? GetTypeInfo()->CastTo(m_Data, type_name_hash) : nullptr;
+  }
+
+  const void * GetAs(uint32_t type_name_hash) const
+  {
+    return GetTypeInfo() ? GetTypeInfo()->CastTo(m_Data, type_name_hash) : nullptr;
+  }
+
+  const TypeInfo * GetTypeInfo() const
   {
     return m_TypeInfo;
+  }
+
+  template <typename T>
+  void SetType()
+  {
+    SetTypeFromNameHash(StormReflTypeInfo<T>::GetNameHash());
   }
 
   void SetTypeFromNameHash(uint32_t type_name_hash)
   {
     if (m_Data != nullptr)
     {
-      t.GetTypeInfo()->HeapFree(m_Data);
+      GetTypeInfo()->HeapFree(m_Data);
     }
 
     auto type_info = TypeDatabase::GetTypeInfo(type_name_hash);
@@ -219,7 +249,7 @@ public:
 
     m_TypeInfo = type_info;
     m_TypeNameHash = type_name_hash;
-    m_Data = type_info->HeapCreate();
+    m_Data = (Base *)type_info->HeapCreate();
     SetParentInfo();
   }
 
@@ -249,12 +279,12 @@ protected:
     }
 
     StormReflectionParentInfo new_info;
-    new_info.m_ParentInfo = parent_info;
+    new_info.m_ParentInfo = &m_ReflectionInfo;
     new_info.m_MemberName = "D";
     new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
-    m_TypeInfo->SetParentInfo(m_Data, new_info);
+    GetTypeInfo()->SetParentInfo(m_Data, new_info);
 #endif
   }
 

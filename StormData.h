@@ -153,6 +153,18 @@ void StormDataSetRawMove(T && src, T & dst)
   void SetRaw(TypeName && rhs); \
   void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent); \
 
+#define STORM_DATA_DEFAULT_CONSTRUCTION_DERIVED(TypeName) \
+  STORM_REFL; \
+  TypeName(); \
+  TypeName(const TypeName & rhs); \
+  TypeName(TypeName && rhs); \
+  TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent); \
+  TypeName & operator = (const TypeName & rhs); \
+  TypeName & operator = (TypeName && rhs); \
+  void SetRaw(const TypeName & rhs); \
+  void SetRaw(TypeName && rhs); \
+  void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent); \
+
 #define STORM_DATA_DEFAULT_CONSTRUCTION_IMPL(TypeName) \
   TypeName::TypeName() \
   { \

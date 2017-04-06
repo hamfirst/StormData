@@ -974,7 +974,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
     bool got_type = false;
     bool got_data = false;
 
-    uint32_t type;
+    uint32_t type = 0;
     const char * data_start = nullptr;
 
     while (true)
@@ -995,17 +995,18 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
         str++;
         StormReflJsonAdvanceWhiteSpace(str);
 
-        if (str != ':')
+        if (*str != ':')
         {
           return false;
         }
 
         str++;
-        uint32_t type;
         if (StormReflParseJson(type, str, str) == false)
         {
           return false;
         }
+
+        got_type = true;
       }
       else if (*str == 'D')
       {
@@ -1023,7 +1024,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
         str++;
         StormReflJsonAdvanceWhiteSpace(str);
 
-        if (str != ':')
+        if (*str != ':')
         {
           return false;
         }
@@ -1034,6 +1035,8 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
         {
           return false;
         }
+
+        got_data = true;
       }
       else
       {
@@ -1043,31 +1046,36 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
       if (got_data && got_type)
       {
         StormReflJsonAdvanceWhiteSpace(str);
-        if (str != '}')
+        if (*str != '}')
         {
           return false;
         }
 
+        str++;
         break;
       }
       else
       {
         StormReflJsonAdvanceWhiteSpace(str);
-        if (str == '}')
+        if (*str == '}')
         {
+          str++;
           break;
         }
 
-        if (str != ',')
+        if (*str != ',')
         {
           return false;
         }
 
+        str++;
         StormReflJsonAdvanceWhiteSpace(str);
         if (*str != '\"')
         {
           return false;
         }
+
+        str++;
       }
     }
 
@@ -1084,7 +1092,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
 
       if (got_data && t.GetTypeInfo() != nullptr)
       {
-        if (t.GetTypeInfo()->ParseJson(&t, data_start) == false)
+        if (t.GetTypeInfo()->ParseJson(t.GetValue(), data_start) == false)
         {
           return false;
         }
@@ -1102,7 +1110,7 @@ struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
   static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result)
   {
     RPolymorphic<Base, TypeDatabase, TypeInfo> val;
-    if (!StormReflJson<T>::Parse(val, str, result))
+    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Parse(val, str, result))
     {
       return false;
     }

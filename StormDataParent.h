@@ -353,7 +353,7 @@ struct SetParentInfoStruct<RMap<K, T>> : public SetHashMapParentInfo<RMap<K, T>>
 };
 
 template <class Base, class TypeDatabase, class TypeInfo>
-struct SetBasicParentInfo<RPolymorphic<Base, TypeDatabase, TypeInfo>>
+struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
 {
   static void Set(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, const StormReflectionParentInfo & info)
   {

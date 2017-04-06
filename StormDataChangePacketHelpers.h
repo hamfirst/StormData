@@ -16,6 +16,7 @@ namespace StormDataChangePacketHelpers
 {
   bool ParseNotifyChangeType(ReflectionNotifyChangeType & type, const char * str, const char *& result);
   bool ParseIndex(uint64_t & val, const char * str, const char *& result);
+  bool ParseIndex(uint32_t & val, const char * str, const char *& result);
 
   template <typename T, bool IsDataRefl>
   struct StormDataApplySetDataRefl
@@ -285,15 +286,15 @@ namespace StormDataChangePacketHelpers
     {
       if (*path == 0)
       {
-        return StormDataApplySet<T>::Process(t, data);
+        return StormDataApplySet<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Process(t, data);
       }
       else if (*path == ' ')
       {
         path++;
-        return StormDataApplySet<T>::Process(t, path);
+        return StormDataApplySet<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Process(t, path);
       }
 
-      if (*path == '.' && *(path + 1) + 'T')
+      if (*path == '.' && *(path + 1) == 'T')
       {
         path += 2;
         if (*path != ' ' || *path != 0)
@@ -310,15 +311,15 @@ namespace StormDataChangePacketHelpers
         t.SetTypeFromNameHash(type_name_hash);
         return true;
       }
-      else if(*path == '.' && *(path + 1) + 'D')
+      else if(*path == '.' && *(path + 1) == 'D')
       {
         path += 2;
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplySet(t.GetValue(), path + 2, data) : false;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplySet(t.GetValue(), path, data) : false;
       }
 
       return false;
@@ -348,7 +349,7 @@ namespace StormDataChangePacketHelpers
   template <typename Base, typename TypeDatabase, typename TypeInfo>
   struct StormDataApplyChangePacketClear<RPolymorphic<Base, TypeDatabase, TypeInfo>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path, const char * data)
+    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -357,13 +358,13 @@ namespace StormDataChangePacketHelpers
 
       if (*path == '.' && *(path + 1) + 'D')
       {
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
         path += 2;
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyClear(t.GetValue(), path + 2, data) : false;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyClear(t.GetValue(), path) : false;
       }
 
       return false;
@@ -393,7 +394,7 @@ namespace StormDataChangePacketHelpers
   template <typename Base, typename TypeDatabase, typename TypeInfo>
   struct StormDataApplyChangePacketCompress<RPolymorphic<Base, TypeDatabase, TypeInfo>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path, const char * data)
+    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -402,13 +403,13 @@ namespace StormDataChangePacketHelpers
 
       if (*path == '.' && *(path + 1) + 'D')
       {
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
         path += 2;
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyCompress(t.GetValue(), path + 2, data) : nullptr;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyCompress(t.GetValue(), path) : false;
       }
 
       return false;
@@ -463,13 +464,13 @@ namespace StormDataChangePacketHelpers
 
       if (*path == '.' && *(path + 1) + 'D')
       {
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
         path += 2;
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyInsert(t.GetValue(), path + 2, index, data) : nullptr;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyInsert(t.GetValue(), path, index, data) : false;
       }
 
       return false;
@@ -509,7 +510,7 @@ namespace StormDataChangePacketHelpers
   template <typename Base, typename TypeDatabase, typename TypeInfo>
   struct StormDataApplyChangePacketRemove<RPolymorphic<Base, TypeDatabase, TypeInfo>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path, const char * data)
+    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * path, uint64_t index)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -518,13 +519,13 @@ namespace StormDataChangePacketHelpers
 
       if (*path == '.' && *(path + 1) + 'D')
       {
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
         path += 2;
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyRemove(t.GetValue(), path + 2, data) : nullptr;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyRemove(t.GetValue(), path, index) : false;
       }
 
       return false;
@@ -545,7 +546,7 @@ namespace StormDataChangePacketHelpers
       auto visitor = [&](auto & new_t, auto * field_data, const char * new_str)
       {
         using MemberType = typename std::decay_t<decltype(new_t)>;
-        using FieldDataType = typename std::decay_t(decltype(*field_data));
+        using FieldDataType = typename std::decay_t<decltype(*field_data)>;
         return StormDataApplyChangePacketRevert<MemberType, FieldDataType>::Process(new_t, field_data, new_str);
       };
 
@@ -567,7 +568,8 @@ namespace StormDataChangePacketHelpers
       auto visitor = [&](auto & new_t, auto * field_data, const char * new_str)
       {
         using MemberType = typename std::decay_t<decltype(new_t)>;
-        return StormDataApplyChangePacketRevert<MemberType>::Process(new_t, field_data, new_str);
+        using FieldType = typename std::decay_t<decltype(*field_data)>;
+        return StormDataApplyChangePacketRevert<MemberType, FieldType>::Process(new_t, field_data, new_str);
       };
 
       return StormDataVisitPathElement(t, visitor, path);
@@ -585,7 +587,7 @@ namespace StormDataChangePacketHelpers
         return true;
       }
 
-      if (*path == '.' && *(path + 1) + 'T')
+      if (*path == '.' && *(path + 1) == 'T')
       {
         path += 2;
         if (*path != ' ' || *path != 0)
@@ -596,15 +598,15 @@ namespace StormDataChangePacketHelpers
         t.SetTypeFromNameHash(0);
         return true;
       }
-      else if (*path == '.' && *(path + 1) + 'D')
+      else if (*path == '.' && *(path + 1) == 'D')
       {
         path += 2;
-        if (*path != ' ' || *path != 0 || *path != '[' || *path != '.')
+        if (*path != ' ' && *path != 0 && *path != '[' && *path != '.')
         {
           return false;
         }
 
-        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyRevert(t.GetValue(), path + 2) : nullptr;
+        return t.GetTypeInfo() ? t.GetTypeInfo()->ApplyRevertDefault(t.GetValue(), path) : false;
       }
 
       return false;

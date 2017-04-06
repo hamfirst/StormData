@@ -15,6 +15,14 @@ namespace StormDataChangePacketHelpers
   bool ParseIndex(uint64_t & val, const char * str, const char *& result);
 }
 
+struct StormDataNullField
+{
+  void SetDefault()
+  {
+
+  }
+};
+
 namespace StormDataPathHelpers
 {
   template <typename T, typename Enable = void>
@@ -51,7 +59,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[index], nullptr, str);
+      return callable(t[index], (StormDataNullField *)nullptr, str);
     }
   };
 
@@ -123,7 +131,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(t[(int)index], nullptr, str);
+      return callable(t[(int)index], (StormDataNullField *)nullptr, str);
     }
   };
 
@@ -157,7 +165,7 @@ namespace StormDataPathHelpers
 
       str++;
 
-      return callable(t[(int)index], nullptr, str);
+      return callable(t[(int)index], (StormDataNullField *)nullptr, str);
     }
   };
 
@@ -173,7 +181,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      uint64_t index;
+      K index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
@@ -191,7 +199,7 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      return callable(*val, nullptr, str);
+      return callable(*val, (StormDataNullField *)nullptr, str);
     }
   };
 }
