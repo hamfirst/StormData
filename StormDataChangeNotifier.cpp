@@ -113,6 +113,13 @@ void ReflectionNotifySet(StormReflectionParentInfo & parent_info, float value)
   FinishChangeNotification(&parent_info, notification);
 }
 
+void ReflectionNotifySet(StormReflectionParentInfo & parent_info, double value)
+{
+  ReflectionChangeNotification notification;
+  StormReflEncodeJson(value, notification.m_Data);
+  FinishChangeNotification(&parent_info, notification);
+}
+
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, const std::string & value)
 {
   ReflectionChangeNotification notification;

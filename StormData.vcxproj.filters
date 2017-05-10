@@ -34,5 +34,6 @@
     <ClInclude Include="StormDataPolymorphic.h" />
     <ClInclude Include="StormDataTypeDatabase.h" />
     <ClInclude Include="StormDataTypeDatabaseRegister.h" />
+    <ClInclude Include="StormDataOpaque.h" />
   </ItemGroup>
 </Project>

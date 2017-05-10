@@ -12,6 +12,7 @@ class RString;
 
 template <typename T> class RNumber;
 template <typename T> class REnum;
+template <typename T> class ROpaque;
 template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
@@ -118,6 +119,12 @@ struct SetParentInfoStruct<RString> : public SetBasicParentInfo<RString>
 
 template <class EnumType>
 struct SetParentInfoStruct<REnum<EnumType>> : public SetBasicParentInfo<REnum<EnumType>>
+{
+
+};
+
+template <class T>
+struct SetParentInfoStruct<ROpaque<T>> : public SetBasicParentInfo<ROpaque<T>>
 {
 
 };

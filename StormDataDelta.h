@@ -59,7 +59,7 @@ namespace StormDataDeltaHelpers
       {
         if (dest_itr == dest.end())
         {
-          dest.EmplaceAt(src_itr->first, src_itr->second);
+          copy_indices.emplace_back(src_itr->first);
         }
         else
         {
@@ -94,7 +94,7 @@ namespace StormDataDeltaHelpers
         dest.RemoveAt(dead_idx);
       }
 
-      for (auto & copy_idx : dead_indices)
+      for (auto & copy_idx : copy_indices)
       {
         dest.EmplaceAt(copy_idx, src[copy_idx]);
       }
@@ -122,7 +122,7 @@ namespace StormDataDeltaHelpers
   template <class Base, class TypeDatabase, class TypeInfo>
   struct StormDataDelta<RPolymorphic<Base, TypeDatabase, TypeInfo>>
   {
-    static bool Process(const RPolymorphic<Base, TypeDatabase, TypeInfo> & src, RPolymorphic<Base, TypeDatabase, TypeInfo> & dest)
+    static void Process(const RPolymorphic<Base, TypeDatabase, TypeInfo> & src, RPolymorphic<Base, TypeDatabase, TypeInfo> & dest)
     {
       if (src.GetTypeNameHash() != dest.GetTypeNameHash())
       {

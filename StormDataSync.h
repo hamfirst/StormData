@@ -44,6 +44,7 @@ namespace StormDataSyncHelpers
         while (*path != 0 && *path != '[' && *path != '.')
         {
           hash = crc32additive(hash, *path);
+          path++;
         }
 
         hash = crc32end(hash);
@@ -120,7 +121,7 @@ namespace StormDataSyncHelpers
           dest.InsertAt(index, {});
         }
 
-        return StormDataSync(src[index], dest[index], path);
+        return ::StormDataSync(src[index], dest[index], path);
       }
 
       return false;
@@ -180,7 +181,6 @@ namespace StormDataSyncHelpers
               return false;
             }
 
-            path++;
             if (src.GetTypeNameHash() != dest.GetTypeNameHash())
             {
               StormDataDeltaCopy(src, dest);

@@ -19,7 +19,7 @@ struct StormDataTypeInfo
 
   void(*EncodeJson)(const void * poly_ptr, std::string & sb);
   void(*EncodePrettyJson)(const void * poly_ptr, std::string & sb, int indent);
-  bool(*ParseJson)(void * poly_ptr, const char * data_start);
+  bool(*ParseJson)(void * poly_ptr, const char * data_start, bool additive);
 
   bool(*ApplySet)(void * poly_ptr, const char * path, const char * data);
   bool(*ApplyClear)(void * poly_ptr, const char * path);
@@ -76,11 +76,20 @@ public:
     return &itr->second;
   }
 
-private:
+  template <typename Visitor>
+  static void VisitTypes(Visitor && visitor)
+  {
+    for (auto & elem : m_TypeList)
+    {
+      visitor(elem.first, elem.second);
+    }
+  }
+
+protected:
 
   static void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *));
 
-private:
+protected:
 
   static std::unordered_map<uint32_t, TypeInfo> m_TypeList;
 };

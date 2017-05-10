@@ -40,7 +40,7 @@ void StormDataTypeDatabase<Base, TypeInfo>::InitTypeInfo(TypeInfo & type_info)
 
   type_info.EncodeJson = [](const void * poly_ptr, std::string & sb) { StormReflEncodeJson(*(const Class *)poly_ptr, sb); };
   type_info.EncodePrettyJson = [](const void * poly_ptr, std::string & sb, int indent) { StormReflEncodePrettyJson(*(const Class *)poly_ptr, sb, indent); };
-  type_info.ParseJson = [](void * poly_ptr, const char * data_start) { return StormReflParseJson(*(Class *)poly_ptr, data_start); };
+  type_info.ParseJson = [](void * poly_ptr, const char * data_start, bool additive) { return StormReflParseJson(*(Class *)poly_ptr, data_start, additive); };
 
   type_info.ApplySet = [](void * poly_ptr, const char * path, const char * data) { return StormDataChangePacketHelpers::StormDataApplyChangePacketSet<Class>::Process(*(Class *)poly_ptr, path, data); };
   type_info.ApplyClear = [](void * poly_ptr, const char * path) { return StormDataChangePacketHelpers::StormDataApplyChangePacketClear<Class>::Process(*(Class *)poly_ptr, path); };

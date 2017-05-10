@@ -61,6 +61,11 @@ namespace StormDataPathHelpers
       str++;
       return callable(t[index], (StormDataNullField *)nullptr, str);
     }
+
+    bool HasAtPath(const char * path)
+    {
+      return *path == 0;
+    }
   };
 
 
@@ -201,5 +206,101 @@ namespace StormDataPathHelpers
       str++;
       return callable(*val, (StormDataNullField *)nullptr, str);
     }
+  };
+
+  template <typename T, typename Enable = void>
+  struct StormDataHasPath
+  {
+    static bool Process(T & t, const char * path)
+    {
+      return *path == 0;
+    }
+  };
+
+  template <typename T>
+  struct StormDataHasPath<T, typename std::enable_if<StormReflCheckReflectable<T>::value>::type>
+  {
+    static bool Process(T & t, const char * path)
+    {
+      if (*path == 0)
+      {
+        return true;
+      }
+
+      if (*path != '.')
+      {
+        return false;
+      }
+
+      uint32_t hash = crc32begin();
+      while (*path != '[' && *path != '.' && *path != 0)
+      {
+        hash = crc32additive(hash, *path);
+        path++;
+      }
+
+      hash = crc32end(hash);
+      bool has_path = false;
+
+      auto visitor = [&](auto f)
+      {
+        using MemberType = typename decltype(f)::member_type;
+        has_path = StormDataHasPath<MemberType>::Process(f.Get(), path);
+      };
+
+      StormReflVisitField(t, visitor, hash);
+      return has_path;
+    }
+  };
+
+  template <typename ListType>
+  struct StormDataHasPathList
+  {
+    static bool Process(ListType & t, const char * path)
+    {
+      if (*path == 0)
+      {
+        return true;
+      }
+
+      if (*path != '[')
+      {
+        return false;
+      }
+
+      std::size_t index = 0;
+      while (*path != ']')
+      {
+        if (*path != 0)
+        {
+          return false;
+        }
+
+        index *= 10;
+        index += *path - '0';
+      }
+
+      if (t.HasAt(index) == false)
+      {
+        return false;
+      }
+
+      return StormReflVisitField(t[index], visitor, hash);
+    }
+  };
+
+  template <typename T>
+  struct StormDataHasPath<RMergeList<T>, void> : StormDataHasPathList<RMergeList<T>>
+  {
+  };
+
+  template <typename T>
+  struct StormDataHasPath<RSparseList<T>, void> : StormDataHasPathList<RSparseList<T>>
+  {
+  };
+
+  template <typename K, typename T>
+  struct StormDataHasPath<RMap<K, T>, void> : StormDataHasPathList<RSparseList<T>>
+  {
   };
 }

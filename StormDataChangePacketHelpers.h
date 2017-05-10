@@ -53,7 +53,7 @@ namespace StormDataChangePacketHelpers
   {
     static bool Process(T & t, const char * result)
     {
-      if (StormDataJson<T>::ParseRaw(t, result, result) == false)
+      if (StormDataJson<T>::ParseRaw(t, result, result, false) == false)
       {
         return false;
       }
@@ -148,7 +148,7 @@ namespace StormDataChangePacketHelpers
     static bool Process(RSparseList<T> & t, uint64_t index, const char * data_str)
     {
       T val;
-      if(StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      if(StormReflJson<T>::Parse(val, data_str, data_str, false) == false)
       {
         return false;
       }
@@ -166,7 +166,7 @@ namespace StormDataChangePacketHelpers
     static bool Process(RMergeList<T> & t, uint64_t index, const char * data_str)
     {
       T val;
-      if (StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      if (StormReflJson<T>::Parse(val, data_str, data_str, false) == false)
       {
         return false;
       }
@@ -184,7 +184,7 @@ namespace StormDataChangePacketHelpers
     static bool Process(RMap<K, T> & t, uint64_t index, const char * data_str)
     {
       T val;
-      if (StormReflJson<T>::Parse(val, data_str, data_str) == false)
+      if (StormReflJson<T>::Parse(val, data_str, data_str, false) == false)
       {
         return false;
       }

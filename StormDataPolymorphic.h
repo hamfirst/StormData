@@ -229,6 +229,7 @@ public:
   void SetType()
   {
     SetTypeFromNameHash(StormReflTypeInfo<T>::GetNameHash());
+    Modified();
   }
 
   void SetTypeFromNameHash(uint32_t type_name_hash)
@@ -244,18 +245,20 @@ public:
       m_TypeInfo = nullptr;
       m_TypeNameHash = 0;
       m_Data = nullptr;
+      Modified();
       return;
     }
 
     m_TypeInfo = type_info;
     m_TypeNameHash = type_name_hash;
     m_Data = (Base *)type_info->HeapCreate();
-    SetParentInfo();
+    SetParentInfo(); 
+    Modified();
   }
 
 protected:
 
-  template <typename T, typename Enable = void>
+  template <typename T, typename Enable>
   friend struct SetParentInfoStruct;
 
   void Modified()

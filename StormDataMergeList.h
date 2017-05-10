@@ -95,7 +95,7 @@ public:
 
     StormDataHelpers::RTempPair<std::size_t, const T &> operator ->() const
     {
-      return StormDataHelpers::RTempPair<int, const T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
+      return StormDataHelpers::RTempPair<std::size_t, const T &>(m_List->m_Indices[m_PhysicalIndex], m_List->m_Values[m_PhysicalIndex]);
     }
 
     RMergeListIteratorConst & operator++()
@@ -242,6 +242,12 @@ public:
 
   void Clear()
   {
+    ClearRaw();
+    Cleared();
+  }
+
+  void ClearRaw()
+  {
     for (std::size_t index = 0; index < m_Size; index++)
     {
       m_Values[index].~T();
@@ -249,7 +255,6 @@ public:
 
     m_HighestIndex = -1;
     m_Size = 0;
-    Cleared();
   }
 
   void Reserve(std::size_t size)
@@ -266,7 +271,7 @@ public:
     std::size_t physical_index;
     T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
     new(elem) T(val);
-    Inserted(m_HighestIndex, physical_index);
+    Inserted(m_HighestIndex, physical_index, false);
 
     return *elem;
   }
@@ -278,7 +283,7 @@ public:
     std::size_t physical_index;
     T * elem = InsertInternal(m_HighestIndex + 1, existing_elem, physical_index);
     new(elem) T(std::forward<InitArgs>(args)...);
-    Inserted(m_HighestIndex, physical_index);
+    Inserted(m_HighestIndex, physical_index, sizeof...(InitArgs) == 0);
 
     return *elem;
   }
@@ -295,7 +300,7 @@ public:
     else
     {
       new(elem) T(val);
-      Inserted(logical_index, physical_index);
+      Inserted(logical_index, physical_index, false);
     }
 
     return *elem;
@@ -314,7 +319,7 @@ public:
     else
     {
       new(elem) T(std::forward<InitArgs>(args)...);
-      Inserted(logical_index, physical_index);
+      Inserted(logical_index, physical_index, sizeof...(InitArgs) == 0);
     }
 
     return *elem;
@@ -383,7 +388,56 @@ public:
     return false;
   }
 
+  T * TryGet(int logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return &m_Values[test];
+      }
+
+      if (m_Indices[test] > (uint32_t)logical_index)
+      {
+        return nullptr;
+      }
+    }
+
+    return nullptr;
+  }
+
+  const T * TryGet(int logical_index) const
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return &m_Values[text];
+      }
+
+      if (m_Indices[test] >(uint32_t)logical_index)
+      {
+        return nullptr;
+      }
+    }
+
+    return nullptr;
+  }
+
   T & operator[](int logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
+  }
+
+  const T & operator[](int logical_index) const
   {
     for (size_t test = 0; test < m_Size; test++)
     {
@@ -548,7 +602,7 @@ private:
 
     if (m_HighestIndex < (int)logical_index)
     {
-      m_Indices[m_Size] = logical_index;
+      m_Indices[m_Size] = (int)logical_index;
       m_HighestIndex = (int)logical_index;
 
       physical_index = m_Size;
@@ -568,7 +622,7 @@ private:
         MoveForward(test);
         m_Size++;
 
-        m_Indices[test] = logical_index;
+        m_Indices[test] = (int)logical_index;
         physical_index = test;
         return &m_Values[test];
       }
@@ -732,7 +786,7 @@ private:
 #endif
   }
 
-  void Inserted(std::size_t logical_index, std::size_t physical_index)
+  void Inserted(std::size_t logical_index, std::size_t physical_index, bool minimal)
   {
 #ifdef STORM_CHANGE_NOTIFIER
 
@@ -741,7 +795,7 @@ private:
     new_info.m_ParentIndex = logical_index;
     new_info.m_MemberName = nullptr;
     new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
-                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+      (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
 
     SetParentInfo(m_Values[physical_index], new_info);
 
@@ -753,7 +807,14 @@ private:
     std::string data;
 
 #ifdef STORM_CHANGE_MINIMAL
-    StormReflSerializeDefaultJson(m_Values[physical_index], data);
+    if (minimal)
+    {
+      StormReflSerializeDefaultJson(m_Values[physical_index], data);
+    }
+    else
+    {
+      StormReflEncodeJson(m_Values[physical_index], data);
+    }
 #else
     StormReflEncodeJson(m_Values[physical_index], data);
 #endif

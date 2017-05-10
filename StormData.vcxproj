@@ -61,6 +61,7 @@
     <ClInclude Include="StormDataMap.h" />
     <ClInclude Include="StormDataMergeList.h" />
     <ClInclude Include="StormDataNumber.h" />
+    <ClInclude Include="StormDataOpaque.h" />
     <ClInclude Include="StormDataParent.h" />
     <ClInclude Include="StormDataPath.h" />
     <ClInclude Include="StormDataPathHelpers.h" />
@@ -166,6 +167,7 @@
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)External</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

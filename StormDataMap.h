@@ -217,8 +217,13 @@ public:
 
   void Clear()
   {
-    DestroyAllElements();
+    ClearRaw();
     Cleared();
+  }
+
+  void ClearRaw()
+  {
+    DestroyAllElements();
   }
 
   T & Set(const K & k, const T & t)
@@ -240,6 +245,11 @@ public:
       *val = t;
       return *val;
     }
+  }
+
+  T & InsertAt(const K & k, const T & t)
+  {
+    return Set(k, t);
   }
 
   template <typename ... InitArgs>
@@ -264,6 +274,12 @@ public:
     }
   }
 
+  template <typename ... InitArgs>
+  T & EmplaceAt(const K & k, InitArgs && ... args)
+  {
+    return Emplace(k, std::forward<InitArgs>(args)...);
+  }
+
   bool Remove(const K & k)
   {
     if (!m_Buckets)
@@ -280,6 +296,11 @@ public:
     }
 
     return false;
+  }
+
+  bool RemoveAt(const K & k)
+  {
+    return Remove(k);
   }
 
   T & Get(const K & k)
@@ -338,6 +359,11 @@ public:
 
     ContainerList * bucket = GetBucket(k);
     return bucket->Find(k);
+  }
+
+  bool HasAt(const K & k) const
+  {
+    return TryGet(k) != nullptr;
   }
 
   T & operator [] (const K & k)

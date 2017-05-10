@@ -230,10 +230,15 @@ public:
 
   void Clear()
   {
+    ClearRaw();
+    Cleared();
+  }
+
+  void ClearRaw()
+  {
     DestroyAllElementsAndInvalidate();
 
     m_HighestIndex = -1;
-    Cleared();
   }
 
   void Reserve(std::size_t size)
@@ -256,7 +261,7 @@ public:
     m_Values[m_HighestIndex].m_Valid = true;
     new(&m_Values[m_HighestIndex].m_Value) T(val);
 
-    Inserted(m_HighestIndex);
+    Inserted(m_HighestIndex, false);
     return m_Values[m_HighestIndex].m_Value;
   }
 
@@ -273,7 +278,7 @@ public:
     m_Values[m_HighestIndex].m_Valid = true;
     new(&m_Values[m_HighestIndex].m_Value) T(std::forward<InitArgs>(args)...);
 
-    Inserted(m_HighestIndex);
+    Inserted(m_HighestIndex, sizeof...(InitArgs) == 0);
     return m_Values[m_HighestIndex].m_Value;
   }
 
@@ -291,7 +296,7 @@ public:
     {
       m_Values[logical_index].m_Valid = true;
       new (&m_Values[logical_index].m_Value) T(val);
-      Inserted(logical_index);
+      Inserted(logical_index, false);
     }
 
     return m_Values[logical_index].m_Value;
@@ -312,7 +317,7 @@ public:
     {
       m_Values[logical_index].m_Valid = true;
       new (&m_Values[logical_index].m_Value) T(std::forward<InitArgs>(args)...);
-      Inserted(logical_index);
+      Inserted(logical_index, sizeof...(InitArgs) == 0);
     }
 
     return m_Values[logical_index].m_Value;
@@ -408,6 +413,26 @@ public:
   }
 
   T & operator[](std::size_t index)
+  {
+    if (m_HighestIndex == -1)
+    {
+      throw std::out_of_range("Invalid index");
+    }
+
+    if (index > (std::size_t)m_HighestIndex)
+    {
+      throw std::out_of_range("Invalid index");
+    }
+
+    if (m_Values[index].m_Valid == false)
+    {
+      throw std::out_of_range("Invalid index");
+    }
+
+    return m_Values[index].m_Value;
+  }
+
+  const T & operator[](std::size_t index) const
   {
     if (m_HighestIndex == -1)
     {
@@ -746,7 +771,7 @@ private:
 #endif
   }
 
-  void Inserted(std::size_t logical_index)
+  void Inserted(std::size_t logical_index, bool minimal)
   {
 #ifdef STORM_CHANGE_NOTIFIER
 
@@ -755,7 +780,7 @@ private:
     new_info.m_MemberName = nullptr;
     new_info.m_ParentIndex = logical_index;
     new_info.m_Flags = (m_ReflectionInfo.m_Callback != nullptr || (m_ReflectionInfo.m_Flags & (uint32_t)StormDataParentInfoFlags::kParentHasCallback) != 0) ?
-                       (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
+      (uint32_t)StormDataParentInfoFlags::kParentHasCallback : 0;
     SetParentInfo(m_Values[logical_index].m_Value, new_info);
 
     if (DoNotifyCallback(m_ReflectionInfo) == false)
@@ -766,7 +791,14 @@ private:
     std::string data;
 
 #ifdef STORM_CHANGE_MINIMAL
-    StormReflSerializeDefaultJson(m_Values[logical_index].m_Value, data);
+    if (minimal)
+    {
+      StormReflSerializeDefaultJson(m_Values[logical_index].m_Value, data);
+    }
+    else
+    {
+      StormReflEncodeJson(m_Values[logical_index].m_Value, data);
+    }
 #else
     StormReflEncodeJson(m_Values[logical_index].m_Value, data);
 #endif

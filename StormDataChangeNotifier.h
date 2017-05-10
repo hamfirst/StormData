@@ -31,6 +31,7 @@ void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint16_t value
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint32_t value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, uint64_t value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, float value);
+void ReflectionNotifySet(StormReflectionParentInfo & parent_info, double value);
 void ReflectionNotifySet(StormReflectionParentInfo & parent_info, const std::string & value);
 
 void ReflectionNotifySetObject(StormReflectionParentInfo & parent_info, const std::string & value);

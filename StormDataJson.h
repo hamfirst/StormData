@@ -6,6 +6,7 @@
 #include "StormDataNumber.h"
 #include "StormDataString.h"
 #include "StormDataEnum.h"
+#include "StormDataOpaque.h"
 #include "StormDataList.h"
 #include "StormDataMap.h"
 #include "StormDataPolymorphic.h"
@@ -18,16 +19,16 @@ struct StormDataJson;
 template <typename T, bool IsDataRefl>
 struct StormDataJsonParseRawDataRefl
 {
-  static bool ParseRaw(T & t, const char * str, const char *& result)
+  static bool ParseRaw(T & t, const char * str, const char *& result, bool additive)
   {
-    return StormReflJson<T>::Parse(t, str, result);
+    return StormReflJson<T>::Parse(t, str, result, additive);
   }
 };
 
 template <typename T>
 struct StormDataJsonParseRawDataRefl<T, true>
 {
-  static bool ParseRaw(T & t, const char * str, const char *& result)
+  static bool ParseRaw(T & t, const char * str, const char *& result, bool additive)
   {
     StormReflJsonAdvanceWhiteSpace(str);
     if (*str != '{')
@@ -69,7 +70,7 @@ struct StormDataJsonParseRawDataRefl<T, true>
       {
         using member_type = typename decltype(f)::member_type;
         member_type & member = f.Get();
-        parsed_field = StormDataJson<member_type>::ParseRaw(member, str, result_str);
+        parsed_field = StormDataJson<member_type>::ParseRaw(member, str, result_str, additive);
       };
 
       StormReflVisitField(t, field_visitor, field_name_hash);
@@ -104,27 +105,27 @@ struct StormDataJsonParseRawDataRefl<T, true>
 template <typename T, bool IsClass>
 struct StormDataJsonParseRawClass
 {
-  static bool ParseRaw(T & t, const char * str, const char *& result)
+  static bool ParseRaw(T & t, const char * str, const char *& result, bool additive)
   {
-    return StormReflJson<T>::Parse(t, str, result);
+    return StormReflJson<T>::Parse(t, str, result, additive);
   }
 };
 
 template <typename T>
 struct StormDataJsonParseRawClass<T, true>
 {
-  static bool ParseRaw(T & t, const char * str, const char *& result)
+  static bool ParseRaw(T & t, const char * str, const char *& result, bool additive)
   {
-    return StormDataJsonParseRawDataRefl<T, StormDataCheckReflectable<T>::value>::ParseRaw(t, str, result);
+    return StormDataJsonParseRawDataRefl<T, StormDataCheckReflectable<T>::value>::ParseRaw(t, str, result, additive);
   }
 };
 
 template <typename T, typename Enable>
 struct StormDataJson
 {
-  static bool ParseRaw(T & t, const char * str, const char *& result)
+  static bool ParseRaw(T & t, const char * str, const char *& result, bool additive)
   {
-    return StormDataJsonParseRawClass<T, std::is_class<T>::value>::ParseRaw(t, str, result);
+    return StormDataJsonParseRawClass<T, std::is_class<T>::value>::ParseRaw(t, str, result, additive);
   }
 };
 
@@ -150,7 +151,7 @@ struct StormReflJson<RBool, void>
     sb += "false";
   }
 
-  static bool Parse(RBool & t, const char * str, const char *& result)
+  static bool Parse(RBool & t, const char * str, const char *& result, bool additive)
   {
     if (StormReflJsonMatchStr(str, result, "true"))
     {
@@ -172,7 +173,7 @@ struct StormReflJson<RBool, void>
 template <>
 struct StormDataJson<RBool, void>
 {
-  static bool ParseRaw(RBool & t, const char * str, const char *& result)
+  static bool ParseRaw(RBool & t, const char * str, const char *& result, bool additive)
   {
     if (StormReflJsonMatchStr(str, result, "true"))
     {
@@ -212,10 +213,10 @@ struct StormReflJson<RNumber<T>, void>
     sb += "0";
   }
 
-  static bool Parse(RNumber<T> & t, const char * str, const char *& result)
+  static bool Parse(RNumber<T> & t, const char * str, const char *& result, bool additive)
   {
     T val;
-    if (!StormReflJson<T>::Parse(val, str, result))
+    if (!StormReflJson<T>::Parse(val, str, result, additive))
     {
       return false;
     }
@@ -228,10 +229,10 @@ struct StormReflJson<RNumber<T>, void>
 template <typename T>
 struct StormDataJson<RNumber<T>, void>
 {
-  static bool ParseRaw(RNumber<T> & t, const char * str, const char *& result)
+  static bool ParseRaw(RNumber<T> & t, const char * str, const char *& result, bool additive)
   {
     T val;
-    if (!StormReflJson<T>::Parse(val, str, result))
+    if (!StormReflJson<T>::Parse(val, str, result, additive))
     {
       return false;
     }
@@ -262,15 +263,15 @@ struct StormReflJson<RString, void>
     sb += "\"\"";
   }
 
-  static bool Parse(RString & t, const char * str, const char *& result)
+  static bool Parse(RString & t, const char * str, const char *& result, bool additive)
   {
     std::string val;
-    if (!StormReflJson<std::string>::Parse(val, str, result))
+    if (!StormReflJson<std::string>::Parse(val, str, result, additive))
     {
       return false;
     }
 
-    t = val;
+    t = std::move(val);
     return true;
   }
 };
@@ -278,15 +279,15 @@ struct StormReflJson<RString, void>
 template <>
 struct StormDataJson<RString, void>
 {
-  static bool ParseRaw(RString & t, const char * str, const char *& result)
+  static bool ParseRaw(RString & t, const char * str, const char *& result, bool additive)
   {
     std::string val;
-    if (!StormReflJson<std::string>::Parse(val, str, result))
+    if (!StormReflJson<std::string>::Parse(val, str, result, additive))
     {
       return false;
     }
 
-    t.SetRaw(val);
+    t.SetRaw(std::move(val));
     return true;
   }
 };
@@ -312,10 +313,10 @@ struct StormReflJson<REnum<T>, void>
     sb += "\"\"";
   }
 
-  static bool Parse(REnum<T> & t, const char * str, const char *& result)
+  static bool Parse(REnum<T> & t, const char * str, const char *& result, bool additive)
   {
     T val;
-    if (StormReflJson<T>::Parse(val, str, result))
+    if (StormReflJson<T>::Parse(val, str, result, additive))
     {
       t = val;
       return true;
@@ -328,10 +329,10 @@ struct StormReflJson<REnum<T>, void>
 template <typename T>
 struct StormDataJson<REnum<T>, void>
 {
-  static bool ParseRaw(REnum<T> & t, const char * str, const char *& result)
+  static bool ParseRaw(REnum<T> & t, const char * str, const char *& result, bool additive)
   {
     T val;
-    if (StormReflJson<T>::Parse(val, str, result))
+    if (StormReflJson<T>::Parse(val, str, result, additive))
     {
       t.SetRaw(val);
       return true;
@@ -340,6 +341,57 @@ struct StormDataJson<REnum<T>, void>
     return false;
   }
 };
+
+template <typename T>
+struct StormReflJson<ROpaque<T>, void>
+{
+  template <class StringBuilder>
+  static void Encode(const ROpaque<T> & t, StringBuilder & sb)
+  {
+    StormReflJson<T>::Encode(t.Value(), sb);
+  }
+
+  template <class StringBuilder>
+  static void EncodePretty(const ROpaque<T> & t, StringBuilder & sb, int indent)
+  {
+    StormReflJson<T>::EncodePretty(t.Value(), sb, indent);
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    StormReflJson<T>::SerializeDefault(sb);
+  }
+
+  static bool Parse(ROpaque<T> & t, const char * str, const char *& result, bool additive)
+  {
+    T val;
+    if (StormReflJson<T>::Parse(val, str, result, additive))
+    {
+      t = std::move(val);
+      return true;
+    }
+
+    return false;
+  }
+};
+
+template <typename T>
+struct StormDataJson<ROpaque<T>, void>
+{
+  static bool ParseRaw(ROpaque<T> & t, const char * str, const char *& result, bool additive)
+  {
+    T val;
+    if (StormReflJson<T>::Parse(val, str, result, additive))
+    {
+      t.SetRaw(std::move(val));
+      return true;
+    }
+
+    return false;
+  }
+};
+
 
 template <typename T>
 struct StormReflJson<RSparseList<T>, void>
@@ -418,11 +470,16 @@ struct StormReflJson<RSparseList<T>, void>
   }
 
   template <typename ItemParser>
-  static bool ParseList(RSparseList<T> & t, const char * str, const char *& result, ItemParser && parser)
+  static bool ParseList(RSparseList<T> & t, const char * str, const char *& result, bool additive, ItemParser && parser)
   {
     if (*str != '{')
     {
       return false;
+    }
+
+    if (additive == false)
+    {
+      t.ClearRaw();
     }
 
     str++;
@@ -445,7 +502,7 @@ struct StormReflJson<RSparseList<T>, void>
       }
 
       str++;
-      if (StormReflJson<std::size_t>::Parse(index, str, str) == false)
+      if (StormReflJson<std::size_t>::Parse(index, str, str, additive) == false)
       {
         return false;
       }
@@ -485,13 +542,13 @@ struct StormReflJson<RSparseList<T>, void>
     }
   }
 
-  static bool Parse(RSparseList<T> & t, const char * str, const char *& result)
+  static bool Parse(RSparseList<T> & t, const char * str, const char *& result, bool additive)
   {
     auto default_parse = [&](const char *& str, std::size_t index)
     {
       t.EmplaceAt(index);
 
-      if (StormReflJson<T>::Parse(t[index], str, str) == false)
+      if (StormReflJson<T>::Parse(t[index], str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -502,20 +559,20 @@ struct StormReflJson<RSparseList<T>, void>
       return true;
     };
 
-    return ParseList(t, str, result, default_parse);
+    return ParseList(t, str, result, additive, default_parse);
   }
 };
 
 template <typename T>
 struct StormDataJson<RSparseList<T>, void>
 {
-  static bool ParseRaw(RSparseList<T> & t, const char * str, const char *& result)
+  static bool ParseRaw(RSparseList<T> & t, const char * str, const char *& result, bool additive)
   {
     auto raw_parse = [&](const char *& str, std::size_t index)
     {
       T val;
 
-      if (StormReflJson<T>::Parse(val, str, str) == false)
+      if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -527,7 +584,7 @@ struct StormDataJson<RSparseList<T>, void>
       return true;
     };
 
-    return StormReflJson<RSparseList<T>>::ParseList(t, str, result, raw_parse);
+    return StormReflJson<RSparseList<T>>::ParseList(t, str, result, additive, raw_parse);
   }
 };
 
@@ -602,11 +659,16 @@ struct StormReflJson<RMergeList<T>, void>
   }
 
   template <typename ItemParser>
-  static bool ParseList(RMergeList<T> & t, const char * str, const char *& result, ItemParser && item_parser)
+  static bool ParseList(RMergeList<T> & t, const char * str, const char *& result, bool additive, ItemParser && item_parser)
   {
     if (*str != '{')
     {
       return false;
+    }
+
+    if (additive == false)
+    {
+      t.ClearRaw();
     }
 
     str++;
@@ -629,7 +691,7 @@ struct StormReflJson<RMergeList<T>, void>
       }
 
       str++;
-      if (StormReflJson<std::size_t>::Parse(index, str, str) == false)
+      if (StormReflJson<std::size_t>::Parse(index, str, str, additive) == false)
       {
         return false;
       }
@@ -675,12 +737,12 @@ struct StormReflJson<RMergeList<T>, void>
     sb += "{}";
   }
 
-  static bool Parse(RMergeList<T> & t, const char * str, const char *& result)
+  static bool Parse(RMergeList<T> & t, const char * str, const char *& result, bool additive)
   {
     auto default_parse = [&](const char *& str, std::size_t index)
     {
       auto & val = t.EmplaceAt(index);
-      if (StormReflJson<T>::Parse(val, str, str) == false)
+      if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -691,7 +753,7 @@ struct StormReflJson<RMergeList<T>, void>
       return true;
     };
 
-    return ParseList(t, str, result, default_parse);
+    return ParseList(t, str, result, additive, default_parse);
   }
 };
 
@@ -699,13 +761,13 @@ struct StormReflJson<RMergeList<T>, void>
 template <typename T>
 struct StormDataJson<RMergeList<T>, void>
 {
-  static bool ParseRaw(RMergeList<T> & t, const char * str, const char *& result)
+  static bool ParseRaw(RMergeList<T> & t, const char * str, const char *& result, bool additive)
   {
     auto raw_parse = [&](const char *& str, std::size_t index)
     {
       T val;
 
-      if (StormReflJson<T>::Parse(val, str, str) == false)
+      if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -717,7 +779,7 @@ struct StormDataJson<RMergeList<T>, void>
       return true;
     };
 
-    return StormReflJson<RMergeList<T>>::ParseList(t, str, result, raw_parse);
+    return StormReflJson<RMergeList<T>>::ParseList(t, str, result, additive, raw_parse);
   }
 };
 
@@ -794,11 +856,16 @@ struct StormReflJson<RMap<K, T>, void>
   }
 
   template <typename ItemParser>
-  static bool ParseList(RMap<K, T> & t, const char * str, const char *& result, ItemParser && item_parser)
+  static bool ParseList(RMap<K, T> & t, const char * str, const char *& result, bool additive, ItemParser && item_parser)
   {
     if (*str != '{')
     {
       return false;
+    }
+
+    if (additive == false)
+    {
+      t.ClearRaw();
     }
 
     str++;
@@ -820,7 +887,7 @@ struct StormReflJson<RMap<K, T>, void>
       }
 
       str++;
-      if (StormReflJson<std::size_t>::Parse(index, str, str) == false)
+      if (StormReflJson<std::size_t>::Parse(index, str, str, false) == false)
       {
         return false;
       }
@@ -860,12 +927,12 @@ struct StormReflJson<RMap<K, T>, void>
     }
   }
 
-  static bool Parse(RMap<K, T> & t, const char * str, const char *& result)
+  static bool Parse(RMap<K, T> & t, const char * str, const char *& result, bool additive)
   {
     auto default_parse = [&](const char *& str, K index)
     {
       auto & val = t.Set(index, T{});
-      if (StormReflJson<T>::Parse(val, str, str) == false)
+      if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -876,19 +943,19 @@ struct StormReflJson<RMap<K, T>, void>
       return true;
     };
 
-    return ParseList(t, str, result, default_parse);
+    return ParseList(t, str, result, additive, default_parse);
   }
 };
 
 template <typename K, typename T>
 struct StormDataJson<RMap<K, T>, void>
 {
-  static bool ParseRaw(RMap<K, T> & t, const char * str, const char *& result)
+  static bool ParseRaw(RMap<K, T> & t, const char * str, const char *& result, bool additive)
   {
     auto raw_parse = [&](const char *& str, K index)
     {
       T val;
-      if (StormReflJson<T>::Parse(val, str, str) == false)
+      if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
         if (StormReflJsonParseOverValue(str, str) == false)
         {
@@ -900,7 +967,7 @@ struct StormDataJson<RMap<K, T>, void>
       return true;
     };
 
-    return StormReflJson<RMap<K, T>>::ParseList(t, str, result, raw_parse);
+    return StormReflJson<RMap<K, T>>::ParseList(t, str, result, additive, raw_parse);
   }
 };
 
@@ -953,7 +1020,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
     sb += "{}";
   }
 
-  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result)
+  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
   {
     StormReflJsonAdvanceWhiteSpace(str);
     if (*str != '{')
@@ -966,6 +1033,11 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
 
     if (*str != '\"')
     {
+      if (*str == '}')
+      {
+        return true;
+      }
+
       return false;
     }
 
@@ -1092,7 +1164,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
 
       if (got_data && t.GetTypeInfo() != nullptr)
       {
-        if (t.GetTypeInfo()->ParseJson(t.GetValue(), data_start) == false)
+        if (t.GetTypeInfo()->ParseJson(t.GetValue(), data_start, additive) == false)
         {
           return false;
         }
@@ -1107,10 +1179,10 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
 template <typename Base, typename TypeDatabase, typename TypeInfo>
 struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
 {
-  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result)
+  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
   {
     RPolymorphic<Base, TypeDatabase, TypeInfo> val;
-    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Parse(val, str, result))
+    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Parse(val, str, result, additive))
     {
       return false;
     }
