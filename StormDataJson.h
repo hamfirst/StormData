@@ -1035,6 +1035,8 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
     {
       if (*str == '}')
       {
+        str++;
+        result = str;
         return true;
       }
 
