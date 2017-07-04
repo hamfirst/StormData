@@ -412,7 +412,7 @@ public:
     {
       if (m_Indices[test] == logical_index)
       {
-        return &m_Values[text];
+        return &m_Values[test];
       }
 
       if (m_Indices[test] >(uint32_t)logical_index)

@@ -452,6 +452,46 @@ public:
     return m_Values[index].m_Value;
   }
 
+  T * TryGet(std::size_t index)
+  {
+    if (m_HighestIndex == -1)
+    {
+      return nullptr;
+    }
+
+    if (index > (std::size_t)m_HighestIndex)
+    {
+      return nullptr;
+    }
+
+    if (m_Values[index].m_Valid == false)
+    {
+      return nullptr;
+    }
+
+    return &m_Values[index].m_Value;
+  }
+
+  const T * TryGet(std::size_t index) const
+  {
+    if (m_HighestIndex == -1)
+    {
+      return nullptr;
+    }
+
+    if (index > (std::size_t)m_HighestIndex)
+    {
+      return nullptr;
+    }
+
+    if (m_Values[index].m_Valid == false)
+    {
+      return nullptr;
+    }
+
+    return &m_Values[index].m_Value;
+  }
+
   RSparseListIterator begin()
   {
     int start_index = 0;

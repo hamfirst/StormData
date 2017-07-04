@@ -33,6 +33,11 @@ namespace StormDataPathHelpers
     {
       return false;
     }
+
+    bool HasAtPath(const char * path)
+    {
+      return false;
+    }
   };
 
   template <typename T, int i>
@@ -253,7 +258,7 @@ namespace StormDataPathHelpers
     }
   };
 
-  template <typename ListType>
+  template <typename ListType, typename T>
   struct StormDataHasPathList
   {
     static bool Process(ListType & t, const char * path)
@@ -280,27 +285,29 @@ namespace StormDataPathHelpers
         index += *path - '0';
       }
 
-      if (t.HasAt(index) == false)
+      auto val = t.TryGet(index);
+      if (val == nullptr)
       {
         return false;
       }
 
-      return StormReflVisitField(t[index], visitor, hash);
+      path++;
+      return StormDataPath<T>::Process(*val, path);
     }
   };
 
   template <typename T>
-  struct StormDataHasPath<RMergeList<T>, void> : StormDataHasPathList<RMergeList<T>>
+  struct StormDataHasPath<RMergeList<T>, void> : StormDataHasPathList<RMergeList<T>, T>
   {
   };
 
   template <typename T>
-  struct StormDataHasPath<RSparseList<T>, void> : StormDataHasPathList<RSparseList<T>>
+  struct StormDataHasPath<RSparseList<T>, void> : StormDataHasPathList<RSparseList<T>, T>
   {
   };
 
   template <typename K, typename T>
-  struct StormDataHasPath<RMap<K, T>, void> : StormDataHasPathList<RSparseList<T>>
+  struct StormDataHasPath<RMap<K, T>, void> : StormDataHasPathList<RSparseList<T>, T>
   {
   };
 }

@@ -51,11 +51,24 @@ struct StormDataTypeInfo
   }
 };
 
+template <typename Base, typename TypeInfo>
+class StormDataTypeDatabase;
+
+template <typename Base, typename TypeInfo>
+class StormDataTypeDatabaseVistorInfo
+{
+
+};
+
+template <typename Base, typename TypeInfo, typename Visitor>
+void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<Base, TypeInfo> & db_info, Visitor && visitor);
 
 template <typename Base, typename TypeInfo>
 class StormDataTypeDatabase
 {
 public:
+
+  using VisitorInfo = StormDataTypeDatabaseVistorInfo<Base, TypeInfo>;
 
   template <typename Class>
   static void InitTypeInfo(TypeInfo & type_info);
@@ -65,27 +78,12 @@ public:
 
   static void FinalizeTypes();
 
-  static TypeInfo * GetTypeInfo(uint32_t type_name_hash)
-  {
-    auto itr = m_TypeList.find(type_name_hash);
-    if (itr == m_TypeList.end())
-    {
-      return nullptr;
-    }
-
-    return &itr->second;
-  }
-
-  template <typename Visitor>
-  static void VisitTypes(Visitor && visitor)
-  {
-    for (auto & elem : m_TypeList)
-    {
-      visitor(elem.first, elem.second);
-    }
-  }
+  static TypeInfo * GetTypeInfo(uint32_t type_name_hash);
 
 protected:
+
+  template <typename BaseDef, typename TypeInfoDef, typename Visitor>
+  friend void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<BaseDef, TypeInfoDef> & db_info, Visitor && visitor);
 
   static void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *));
 
@@ -93,4 +91,16 @@ protected:
 
   static std::unordered_map<uint32_t, TypeInfo> m_TypeList;
 };
+
+template <typename Base, typename TypeInfo>
+std::unordered_map<uint32_t, TypeInfo> StormDataTypeDatabase<Base, TypeInfo>::m_TypeList;
+
+template <typename Base, typename TypeInfo, typename Visitor>
+void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<Base, TypeInfo> & db_info, Visitor && visitor)
+{
+  for (auto & elem : StormDataTypeDatabase<Base, TypeInfo>::m_TypeList)
+  {
+    visitor(elem.first, elem.second);
+  }
+}
 

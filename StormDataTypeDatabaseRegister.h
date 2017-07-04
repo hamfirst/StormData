@@ -121,3 +121,15 @@ void StormDataTypeDatabase<Base, TypeInfo>::AddBaseTypesForType(TypeInfo & type_
     AddBaseTypesForType(type_info, base_base.first, base_base.second);
   }
 }
+
+template <typename Base, typename TypeInfo>
+TypeInfo * StormDataTypeDatabase<Base, TypeInfo>::GetTypeInfo(uint32_t type_name_hash)
+{
+  auto itr = m_TypeList.find(type_name_hash);
+  if (itr == m_TypeList.end())
+  {
+    return nullptr;
+  }
+
+  return &itr->second;
+}
