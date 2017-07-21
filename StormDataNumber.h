@@ -495,5 +495,239 @@ private:
   STORM_CHANGE_NOTIFIER_INFO;
 };
 
+class RDeterministicFloat
+{
+public:
+  static const int kMaxLength = 32;
+
+  RDeterministicFloat(const char * str)
+  {
+    ParseStr(str);
+  }
+
+  RDeterministicFloat()
+  {
+    m_Value[0] = '0';
+    m_Value[1] = 0;
+  }
+
+  RDeterministicFloat(const RDeterministicFloat & val)
+  {
+    CopyFrom(val.m_Value);
+  }
+
+  RDeterministicFloat(RDeterministicFloat && val) noexcept
+  {
+    CopyFrom(val.m_Value);
+#ifdef STORM_CHANGE_NOTIFIER
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    val.m_ReflectionInfo = {};
+#endif
+  }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  RDeterministicFloat(RDeterministicFloat && val, StormReflectionParentInfo * new_parent) noexcept
+  {
+    CopyFrom(val.m_Value);
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
+  RDeterministicFloat & operator = (const RDeterministicFloat & rhs) noexcept
+  {
+    CopyFrom(rhs.m_Value);
+    Set();
+    return *this;
+  }
+
+  RDeterministicFloat & operator = (RDeterministicFloat && rhs) noexcept
+  {
+    CopyFrom(rhs.m_Value);
+    Set();
+    return *this;
+  }
+
+  RDeterministicFloat & operator = (czstr val) noexcept
+  {
+    ParseStr(val);
+    Set();
+    return *this;
+  }
+
+  float ToFloat()
+  {
+    return (float)atof(m_Value);
+  }
+
+  void SetRaw(const RDeterministicFloat & rhs)
+  {
+    CopyFrom(rhs.m_Value);
+  }
+
+  void SetRaw(RDeterministicFloat && rhs)
+  {
+    CopyFrom(rhs.m_Value);
+  }
+
+  void SetRaw(czstr val)
+  {
+    ParseStr(val);
+  }
+
+  czstr GetStr() const
+  {
+    return m_Value;
+  }
+
+  void SetZero()
+  {
+    m_Value[0] = '0';
+    m_Value[1] = 0;
+  }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  void Relocate(RDeterministicFloat && val, StormReflectionParentInfo * new_parent) noexcept
+  {
+    CopyFrom(val.m_Value);
+    m_ReflectionInfo = val.m_ReflectionInfo;
+    m_ReflectionInfo.m_ParentInfo = new_parent;
+  }
+#endif
+
+  bool operator == (const RDeterministicFloat & val) const
+  {
+    return !strcmp(val.GetStr(), GetStr());
+  }
+
+  bool operator != (const RDeterministicFloat & val) const
+  {
+    return strcmp(val.GetStr(), GetStr()) != 0;
+  }
+
+private:
+
+  void CopyFrom(const char(&val)[kMaxLength])
+  {
+    memcpy(m_Value, val, kMaxLength);
+  }
+
+  void ParseStr(czstr str)
+  {
+    auto start_str = str;
+
+    bool negative = false;
+    if (*str == '-')
+    {
+      negative = true;
+      str++;
+    }
+
+    if (*str == '+')
+    {
+      str++;
+    }
+
+    bool has_mantessa = false;
+    bool has_numbers = false;
+    bool has_exponent = false;
+    bool has_negative_exponent = false;
+    bool has_exponent_numbers = false;
+    while (true)
+    {
+      if (*str >= '0' && *str <= '9')
+      {
+        if (has_exponent)
+        {
+          has_exponent_numbers = true;
+        }
+        else
+        {
+          has_numbers = true;
+        }
+        str++;
+      }
+      else if (*str == '.')
+      {
+        if (has_mantessa || has_exponent)
+        {
+          SetZero();
+          return;
+        }
+        else
+        {
+          has_mantessa = true;
+        }
+        str++;
+      }
+      else if (*str == 'e' || *str == 'E')
+      {
+        if (has_exponent)
+        {
+          SetZero();
+          return;
+        }
+        else
+        {
+          str++;
+
+          if (*str == '-')
+          {
+            has_negative_exponent = true;
+            str++;
+          }
+          else if (*str == '+')
+          {
+            str++;
+          }
+        }
+      }
+      else
+      {
+        break;
+      }
+    }
+
+    if (has_numbers == false)
+    {
+      SetZero();
+      return;
+    }
+
+    if (has_exponent && has_exponent_numbers == false)
+    {
+      SetZero();
+      return;
+    }
+
+    auto length = str - start_str;
+    if (length > kMaxLength - 1)
+    {
+      // Deal with this later
+      SetZero();
+    }
+    else
+    {
+      memcpy(m_Value, start_str, length);
+      m_Value[length] = 0;
+    }
+  }
+
+  void Set()
+  {
+#ifdef STORM_CHANGE_NOTIFIER
+    if (DoNotifyCallback(m_ReflectionInfo) == false)
+    {
+      return;
+    }
+
+    ReflectionNotifySet(m_ReflectionInfo, std::string(m_Value));
+#endif
+  }
+
+  char m_Value[kMaxLength];
+  STORM_CHANGE_NOTIFIER_INFO;
+};
+
 using RInt = RNumber<int>;
 using RFloat = RNumber<float>;

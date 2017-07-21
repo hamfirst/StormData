@@ -349,7 +349,7 @@ public:
     return false;
   }
 
-  int HighestIndex()
+  int HighestIndex() const
   {
     return m_HighestIndex;
   }
