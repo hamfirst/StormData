@@ -140,7 +140,6 @@ public:
   }
 
   RMap(RMap<K, T> && rhs) :
-    m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
     m_Size(rhs.m_Size)
   {
     if (rhs.m_Size)
@@ -160,7 +159,6 @@ public:
 
 #ifdef STORM_CHANGE_NOTIFIER
   RMap(RMap<K, T> && rhs, StormReflectionParentInfo * new_parent) :
-    m_Buckets(std::make_unique<ContainerList[]>(kBucketCount)),
     m_Size(rhs.m_Size)
   {
     m_ReflectionInfo = rhs.m_ReflectionInfo;
@@ -237,7 +235,7 @@ public:
     {
       T & ret_val = bucket->Emplace(k, &m_ReflectionInfo, t);
       m_Size++;
-      Inserted(k, ret_val);
+      Inserted(k, ret_val, false);
       return ret_val;
     }
     else
@@ -264,7 +262,7 @@ public:
     {
       T & ret_val = bucket->Emplace(k, &m_ReflectionInfo, std::forward<InitArgs>(args)...);
       m_Size++;
-      Inserted(k, ret_val);
+      Inserted(k, ret_val, sizeof...(InitArgs) == 0);
       return ret_val;
     }
     else
@@ -523,7 +521,7 @@ private:
 #endif
   }
 
-  void Inserted(K key, T & value)
+  void Inserted(K key, T & value, bool minimal)
   {
 #ifdef STORM_CHANGE_NOTIFIER
 
@@ -543,7 +541,14 @@ private:
     std::string data;
 
 #ifdef STORM_CHANGE_MINIMAL
-    StormReflSerializeDefaultJson(value, data);
+    if (minimal)
+    {
+      StormReflSerializeDefaultJson(value, data);
+    }
+    else
+    {
+      StormReflEncodeJson(value, data);
+    }
 #else
     StormReflEncodeJson(value, data);
 #endif
@@ -635,6 +640,7 @@ private:
       
       m_Values = rhs.m_Values;
       m_Size = rhs.m_Size;
+      m_Capacity = rhs.m_Capacity;
 
       rhs.m_Values = nullptr;
       rhs.m_Size = 0;

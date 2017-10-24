@@ -794,6 +794,7 @@ struct StormReflJson<RMergeList<T>, void>
       auto & val = t.EmplaceAt(index);
       if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
+        t.RemoveAt(index);
         if (StormReflJsonParseOverValue(str, str) == false)
         {
           return false;
@@ -929,7 +930,7 @@ struct StormReflJson<RMap<K, T>, void>
         return true;
       }
 
-      std::size_t index;
+      K index;
 
       if (*str != '\"')
       {
@@ -937,7 +938,7 @@ struct StormReflJson<RMap<K, T>, void>
       }
 
       str++;
-      if (StormReflJson<std::size_t>::Parse(index, str, str, false) == false)
+      if (StormReflJson<K>::Parse(index, str, str, false) == false)
       {
         return false;
       }

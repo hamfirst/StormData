@@ -1,6 +1,7 @@
 #pragma once
 
 #include <type_traits>
+#include <cstdlib>
 
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"
@@ -730,4 +731,5 @@ private:
 };
 
 using RInt = RNumber<int>;
+using RUInt = RNumber<unsigned int>;
 using RFloat = RNumber<float>;
