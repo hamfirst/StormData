@@ -146,10 +146,11 @@ namespace StormDataSyncHelpers
 
   };
 
-  template <class Base, class TypeDatabase, class TypeInfo>
-  struct StormDataSync<RPolymorphic<Base, TypeDatabase, TypeInfo>>
+  template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase>
+  struct StormDataSync<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(const RPolymorphic<Base, TypeDatabase, TypeInfo> & src, RPolymorphic<Base, TypeDatabase, TypeInfo> & dest, const char * path)
+    static bool Process(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & src, 
+                              RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & dest, const char * path)
     {
       if (*path == 0)
       {

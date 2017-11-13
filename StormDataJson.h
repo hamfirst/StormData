@@ -1022,11 +1022,11 @@ struct StormDataJson<RMap<K, T>, void>
   }
 };
 
-template <typename Base, typename TypeDatabase, typename TypeInfo>
-struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
+struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>, void>
 {
   template <class StringBuilder>
-  static void Encode(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb)
+  static void Encode(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, StringBuilder & sb)
   {
     if (t.GetTypeInfo())
     {
@@ -1043,7 +1043,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
   }
 
   template <class StringBuilder>
-  static void EncodePretty(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb, int indent)
+  static void EncodePretty(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, StringBuilder & sb, int indent)
   {
     if (t.GetTypeInfo())
     {
@@ -1071,7 +1071,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
     sb += "{}";
   }
 
-  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
+  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * str, const char *& result, bool additive)
   {
     StormReflJsonAdvanceWhiteSpace(str);
     if (*str != '{')
@@ -1229,13 +1229,13 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
   }
 };
 
-template <typename Base, typename TypeDatabase, typename TypeInfo>
-struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
+struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>, void>
 {
-  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
+  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * str, const char *& result, bool additive)
   {
-    RPolymorphic<Base, TypeDatabase, TypeInfo> val;
-    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Parse(val, str, result, additive))
+    RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> val;
+    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Parse(val, str, result, additive))
     {
       return false;
     }

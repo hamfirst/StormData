@@ -191,6 +191,27 @@ public:
   }
 #endif
 
+  RMergeList(std::initializer_list<T> l) : 
+    RMergeList()
+  {
+    m_Indices = Allocate<uint32_t>(l.size());
+    m_Values = Allocate<T>(l.size());
+    m_Capacity = l.size();
+    m_Size = l.size();
+    m_HighestIndex = (int)l.size() - 1;
+
+    auto itr = l.begin();
+    for (std::size_t index = 0; index < l.size(); index++)
+    {
+      m_Indices[index] = (int)index;
+      new(&m_Values[index]) T(*itr);
+
+      ++itr;
+    }
+
+    InitAllElements();
+  }
+
   ~RMergeList()
   {
     if (m_Capacity > 0)

@@ -16,7 +16,7 @@ template <typename T> class ROpaque;
 template <typename T> class RSparseList;
 template <typename T> class RMergeList;
 template <typename K, typename T> class RMap;
-template <class Base, class TypeDatabase, class TypeInfo> class RPolymorphic;
+template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase = false> class RPolymorphic;
 
 template <typename T, typename Enable = void>
 struct SetParentInfoStruct
@@ -359,21 +359,21 @@ struct SetParentInfoStruct<RMap<K, T>> : public SetHashMapParentInfo<RMap<K, T>>
 
 };
 
-template <class Base, class TypeDatabase, class TypeInfo>
-struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
+template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase>
+struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
 {
-  static void Set(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, const StormReflectionParentInfo & info)
+  static void Set(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value, const StormReflectionParentInfo & info)
   {
     value.m_ReflectionInfo = info;
     value.SetParentInfo();
   }
 
-  static void SetParent(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormReflectionParentInfo * parent_info)
+  static void SetParent(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value, StormReflectionParentInfo * parent_info)
   {
     value.m_ReflectionInfo.m_ParentInfo = parent_info;
   }
 
-  static void SetCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataNotifyCallback callback, void * user_ptr)
+  static void SetCallback(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value, StormDataNotifyCallback callback, void * user_ptr)
   {
     value.m_ReflectionInfo.m_Callback = callback;
     value.m_ReflectionInfo.m_CallbackUserPtr = user_ptr;
@@ -384,7 +384,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
     }
   }
 
-  static void ClearCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value)
+  static void ClearCallback(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value)
   {
     value.m_ReflectionInfo.m_Callback = nullptr;
     value.m_ReflectionInfo.m_CallbackUserPtr = nullptr;
@@ -395,7 +395,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
     }
   }
 
-  static void ClearParentCallback(RPolymorphic<Base, TypeDatabase, TypeInfo> & value)
+  static void ClearParentCallback(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value)
   {
     ClearFlag(value, (StormDataParentInfoFlags)~(uint32_t)StormDataParentInfoFlags::kParentHasCallback);
 
@@ -405,7 +405,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
     }
   }
 
-  static void SetFlag(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataParentInfoFlags flags)
+  static void SetFlag(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value, StormDataParentInfoFlags flags)
   {
     value.m_ReflectionInfo.m_Flags |= (uint32_t)flags;
 
@@ -415,7 +415,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
     }
   }
 
-  static void ClearFlag(RPolymorphic<Base, TypeDatabase, TypeInfo> & value, StormDataParentInfoFlags flags)
+  static void ClearFlag(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & value, StormDataParentInfoFlags flags)
   {
     value.m_ReflectionInfo.m_Flags &= (uint32_t)flags;
 
@@ -425,7 +425,7 @@ struct SetParentInfoStruct<RPolymorphic<Base, TypeDatabase, TypeInfo>>
     }
   }
 
-  static void MoveParentInfo(RPolymorphic<Base, TypeDatabase, TypeInfo> & src, RPolymorphic<Base, TypeDatabase, TypeInfo> & dst)
+  static void MoveParentInfo(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & src, RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & dst)
   {
     dst.m_ReflectionInfo = src.m_ReflectionInfo;
     src.m_ReflectionInfo = {};
