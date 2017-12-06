@@ -36,6 +36,8 @@ bool StormDataApplyChangePacket(T & t, const char * str)
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRemove<T>::Process(t, str, ~0);
   case ReflectionNotifyChangeType::kRevert:
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, str);
+  case ReflectionNotifyChangeType::kRearrange:
+    return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, str);
   }
 
   return false;

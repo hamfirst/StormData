@@ -233,6 +233,15 @@ namespace StormDataChangePacketHelpers
     }
   };
 
+  template <typename T>
+  struct StormDataApplyRearrange
+  {
+    static bool Process(T & t)
+    {
+      return false;
+    }
+  };
+
   struct StormDataApplyRemovePacket
   {
     template <typename T>
@@ -501,6 +510,36 @@ namespace StormDataChangePacketHelpers
       {
         using MemberType = typename std::decay_t<decltype(new_t)>;
         return StormDataApplyChangePacketRemove<MemberType>::Process(new_t, new_str, index);
+      };
+
+      return StormDataVisitPathElement(t, visitor, path);
+    }
+  };
+
+  template <class T>
+  struct StormDataApplyChangePacketRearrange
+  {
+    static bool Process(T & t, const char * path, uint64_t index)
+    {
+      if (*path == 0)
+      {
+        return StormDataApplyRearrange<T>::Process(t, index);
+      }
+      else if (*path == ' ')
+      {
+        path++;
+        if (ParseIndex(index, path, path) == false)
+        {
+          return false;
+        }
+
+        return StormDataApplyRearrange<T>::Process(t, index);
+      }
+
+      auto visitor = [&](auto & new_t, auto * field_data, const char * new_str)
+      {
+        using MemberType = typename std::decay_t<decltype(new_t)>;
+        return StormDataApplyChangePacketRearrange<MemberType>::Process(new_t, new_str, index);
       };
 
       return StormDataVisitPathElement(t, visitor, path);

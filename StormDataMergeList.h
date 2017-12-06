@@ -191,7 +191,7 @@ public:
   }
 #endif
 
-  RMergeList(std::initializer_list<T> l) : 
+  RMergeList(std::initializer_list<T> l) :
     RMergeList()
   {
     m_Indices = Allocate<uint32_t>(l.size());
@@ -390,6 +390,7 @@ public:
     UpdateAllElements();
     Compressed();
   }
+
 
   bool HasAt(int logical_index) const
   {
@@ -613,6 +614,40 @@ private:
 
 
       m_Values[index + 1].~T();
+    }
+  }
+
+  void ShiftUp(std::size_t start_index, std::size_t end_index)
+  {
+    for (std::size_t pos = 0; pos < m_Size; ++pos)
+    {
+      if (m_Indices[pos] >= index)
+      {
+        while (m_Indices[pos] < end_index)
+        {
+          m_Indices[pos]++;
+          pos++;
+        }
+
+        return;
+      }
+    }
+  }
+
+  void ShiftDown(std::size_t start_index, std::size_t end_index)
+  {
+    for (std::size_t pos = 0; pos < m_Size; ++pos)
+    {
+      if (m_Indices[pos] >= index)
+      {
+        while (m_Indices[pos] < end_index)
+        {
+          m_Indices[pos]--;
+          pos++;
+        }
+
+        return;
+      }
     }
   }
 

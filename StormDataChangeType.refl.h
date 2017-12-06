@@ -9,5 +9,6 @@ enum STORM_REFL_ENUM class ReflectionNotifyChangeType
   kCompress,
   kInsert,
   kRemove,
+  kRearrange,
   kRevert,
 };

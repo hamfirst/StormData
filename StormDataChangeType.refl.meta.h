@@ -8,7 +8,7 @@
 template <>
 struct StormReflEnumInfo<ReflectionNotifyChangeType>
 {
-  static constexpr int elems_n = 6;
+  static constexpr int elems_n = 7;
   static constexpr auto GetName() { return "ReflectionNotifyChangeType"; }
   static constexpr auto GetNameHash() { return 0xD4869875; }
   template <int N> struct elems { };
@@ -56,6 +56,14 @@ struct StormReflEnumInfo<ReflectionNotifyChangeType>::elems<4>
 
 template <>
 struct StormReflEnumInfo<ReflectionNotifyChangeType>::elems<5>
+{
+  static constexpr auto GetName() { return "kRearrange"; }
+  static constexpr auto GetNameHash() { return 0x30AC1611; }
+  static constexpr auto GetValue() { return ReflectionNotifyChangeType::kRearrange; }
+};
+
+template <>
+struct StormReflEnumInfo<ReflectionNotifyChangeType>::elems<6>
 {
   static constexpr auto GetName() { return "kRevert"; }
   static constexpr auto GetNameHash() { return 0x4E60CE7A; }

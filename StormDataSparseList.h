@@ -715,6 +715,38 @@ private:
 #endif
   }
 
+  void ShiftUp(std::size_t start_index, std::size_t end_index)
+  {
+    auto end = std::min((int)end_index, m_HighestIndex);
+    GrowToFit(end);
+
+    for (int pos = end; pos > start_index; --pos)
+    {
+#ifdef STORM_CHANGE_NOTIFIER
+      StormDataRelocateConstruct(std::move(m_Values[pos].m_Value), &m_Values[pos + 1].m_Value, &m_ReflectionInfo);
+#else
+      new (&values[pos + 1].m_Value) T(std::move(m_Values[pos].m_Value));
+#endif
+    }
+
+    m_Values[start_index].~T();
+  }
+
+  void ShiftDown(std::size_t start_index, std::size_t end_index)
+  {
+    auto end = std::min((int)end_index, m_HighestIndex);
+    for (int pos = (int)start_index; pos <= end; ++pos)
+    {
+#ifdef STORM_CHANGE_NOTIFIER
+      StormDataRelocateConstruct(std::move(m_Values[pos].m_Value), &m_Values[pos - 1].m_Value, &m_ReflectionInfo);
+#else
+      new (&values[pos - 1].m_Value) T(std::move(m_Values[pos].m_Value));
+#endif
+    }
+
+    m_Values[end].~T();
+  }
+
   void Set()
   {
 #ifdef STORM_CHANGE_NOTIFIER
