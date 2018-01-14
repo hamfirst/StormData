@@ -384,15 +384,14 @@ public:
   {
     for (std::size_t index = 0; index < m_Size; index++)
     {
-      m_Indices[index] = index;
+      m_Indices[index] = (uint32_t)index;
     }
 
     UpdateAllElements();
     Compressed();
   }
 
-
-  bool HasAt(int logical_index) const
+  bool HasAt(std::size_t logical_index) const
   {
     for (size_t test = 0; test < m_Size; test++)
     {
@@ -444,6 +443,32 @@ public:
     }
 
     return nullptr;
+  }
+
+  T & operator[](std::size_t logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
+  }
+
+  const T & operator[](std::size_t logical_index) const
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
   }
 
   T & operator[](int logical_index)

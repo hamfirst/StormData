@@ -88,7 +88,7 @@ namespace StormDataSyncHelpers
           return false;
         }
 
-        uint64_t index = *path - '0';      
+        std::size_t index = *path - '0';      
         path++;
 
         while (*path != ']')

@@ -496,28 +496,28 @@ private:
   STORM_CHANGE_NOTIFIER_INFO;
 };
 
-class RDeterministicFloat
+class RDeterministicFloatBase
 {
 public:
   static const int kMaxLength = 32;
 
-  RDeterministicFloat(const char * str)
+  RDeterministicFloatBase(const char * str)
   {
     ParseStr(str);
   }
 
-  RDeterministicFloat()
+  RDeterministicFloatBase()
   {
     m_Value[0] = '0';
     m_Value[1] = 0;
   }
 
-  RDeterministicFloat(const RDeterministicFloat & val)
+  RDeterministicFloatBase(const RDeterministicFloatBase & val)
   {
     CopyFrom(val.m_Value);
   }
 
-  RDeterministicFloat(RDeterministicFloat && val) noexcept
+  RDeterministicFloatBase(RDeterministicFloatBase && val) noexcept
   {
     CopyFrom(val.m_Value);
 #ifdef STORM_CHANGE_NOTIFIER
@@ -527,7 +527,7 @@ public:
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
-  RDeterministicFloat(RDeterministicFloat && val, StormReflectionParentInfo * new_parent) noexcept
+  RDeterministicFloatBase(RDeterministicFloatBase && val, StormReflectionParentInfo * new_parent) noexcept
   {
     CopyFrom(val.m_Value);
     m_ReflectionInfo = val.m_ReflectionInfo;
@@ -535,21 +535,21 @@ public:
   }
 #endif
 
-  RDeterministicFloat & operator = (const RDeterministicFloat & rhs) noexcept
+  RDeterministicFloatBase & operator = (const RDeterministicFloatBase & rhs) noexcept
   {
     CopyFrom(rhs.m_Value);
     Set();
     return *this;
   }
 
-  RDeterministicFloat & operator = (RDeterministicFloat && rhs) noexcept
+  RDeterministicFloatBase & operator = (RDeterministicFloatBase && rhs) noexcept
   {
     CopyFrom(rhs.m_Value);
     Set();
     return *this;
   }
 
-  RDeterministicFloat & operator = (czstr val) noexcept
+  RDeterministicFloatBase & operator = (czstr val) noexcept
   {
     ParseStr(val);
     Set();
@@ -561,12 +561,12 @@ public:
     return (float)atof(m_Value);
   }
 
-  void SetRaw(const RDeterministicFloat & rhs)
+  void SetRaw(const RDeterministicFloatBase & rhs)
   {
     CopyFrom(rhs.m_Value);
   }
 
-  void SetRaw(RDeterministicFloat && rhs)
+  void SetRaw(RDeterministicFloatBase && rhs)
   {
     CopyFrom(rhs.m_Value);
   }
@@ -588,7 +588,7 @@ public:
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
-  void Relocate(RDeterministicFloat && val, StormReflectionParentInfo * new_parent) noexcept
+  void Relocate(RDeterministicFloatBase && val, StormReflectionParentInfo * new_parent) noexcept
   {
     CopyFrom(val.m_Value);
     m_ReflectionInfo = val.m_ReflectionInfo;
@@ -596,17 +596,17 @@ public:
   }
 #endif
 
-  bool operator == (const RDeterministicFloat & val) const
+  bool operator == (const RDeterministicFloatBase & val) const
   {
     return !strcmp(val.GetStr(), GetStr());
   }
 
-  bool operator != (const RDeterministicFloat & val) const
+  bool operator != (const RDeterministicFloatBase & val) const
   {
     return strcmp(val.GetStr(), GetStr()) != 0;
   }
 
-private:
+protected:
 
   void CopyFrom(const char(&val)[kMaxLength])
   {
@@ -728,6 +728,82 @@ private:
 
   char m_Value[kMaxLength];
   STORM_CHANGE_NOTIFIER_INFO;
+};
+
+template <typename ParsedType>
+class RDeterministicFloat : public RDeterministicFloatBase
+{
+public:
+  RDeterministicFloat(const char * str) :
+    RDeterministicFloatBase(str),
+    m_ParsedType(str)
+  {
+  }
+
+  RDeterministicFloat()
+  {
+  }
+
+  RDeterministicFloat(const RDeterministicFloat<ParsedType> & val) :
+    RDeterministicFloatBase(val),
+    m_ParsedType(val.m_ParsedType)
+  {
+  }
+
+  RDeterministicFloat(RDeterministicFloatBase && val) :
+    RDeterministicFloatBase(std::move(val)),
+    m_ParsedType(val.m_ParsedType)
+  {
+
+  }
+
+#ifdef STORM_CHANGE_NOTIFIER
+  RDeterministicFloat(RDeterministicFloatBase && val, StormReflectionParentInfo * new_parent) :
+    RDeterministicFloatBase(std::move(val), new_parent),
+    m_ParsedType(val.m_ParsedType)
+  {
+
+  }
+#endif
+
+  RDeterministicFloat<ParsedType> & operator = (const RDeterministicFloat<ParsedType> & rhs)
+  {
+    RDeterministicFloatBase::operator=(rhs);
+    m_ParsedType = rhs.m_ParsedType;
+    return *this;
+  }
+
+  RDeterministicFloat<ParsedType> & operator = (RDeterministicFloat<ParsedType> && rhs)
+  {
+    RDeterministicFloatBase::operator=(std::move(rhs));
+    m_ParsedType = rhs.m_ParsedType;
+    return *this;
+  }
+
+  RDeterministicFloat<ParsedType> & operator = (czstr val)
+  {
+    RDeterministicFloatBase::operator=(val);
+    m_ParsedType = ParsedType(val);
+    return *this;
+  }
+
+  bool operator == (const RDeterministicFloat<ParsedType> & val) const
+  {
+    return RDeterministicFloatBase::operator ==(val);
+  }
+
+  bool operator != (const RDeterministicFloat<ParsedType> & val) const
+  {
+    return RDeterministicFloatBase::operator !=(val);
+  }
+
+  operator ParsedType() const
+  {
+    return m_ParsedType;
+  }
+
+private:
+  ParsedType m_ParsedType;
 };
 
 using RInt = RNumber<int>;

@@ -243,16 +243,16 @@ struct StormDataJson<RNumber<T>, void>
 };
 
 template <>
-struct StormReflJson<RDeterministicFloat, void>
+struct StormReflJson<RDeterministicFloatBase, void>
 {
   template <class StringBuilder>
-  static void Encode(const RDeterministicFloat & t, StringBuilder & sb)
+  static void Encode(const RDeterministicFloatBase & t, StringBuilder & sb)
   {
     StormReflJson<std::string>::Encode(t.GetStr(), sb);
   }
 
   template <class StringBuilder>
-  static void EncodePretty(const RDeterministicFloat & t, StringBuilder & sb, int indent)
+  static void EncodePretty(const RDeterministicFloatBase & t, StringBuilder & sb, int indent)
   {
     StormReflJson<std::string>::Encode(t.GetStr(), sb);
   }
@@ -263,7 +263,41 @@ struct StormReflJson<RDeterministicFloat, void>
     sb += "\"0\"";
   }
 
-  static bool Parse(RDeterministicFloat & t, const char * str, const char *& result, bool additive)
+  static bool Parse(RDeterministicFloatBase & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t = parsed.data();
+    return true;
+  }
+};
+
+template <typename ParsedType>
+struct StormReflJson<RDeterministicFloat<ParsedType>, void>
+{
+  template <class StringBuilder>
+  static void Encode(const RDeterministicFloat<ParsedType> & t, StringBuilder & sb)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void EncodePretty(const RDeterministicFloat<ParsedType> & t, StringBuilder & sb, int indent)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "\"0\"";
+  }
+
+  static bool Parse(RDeterministicFloat<ParsedType> & t, const char * str, const char *& result, bool additive)
   {
     std::string parsed;
     if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
@@ -277,9 +311,25 @@ struct StormReflJson<RDeterministicFloat, void>
 };
 
 template <>
-struct StormDataJson<RDeterministicFloat, void>
+struct StormDataJson<RDeterministicFloatBase, void>
 {
-  static bool ParseRaw(RDeterministicFloat & t, const char * str, const char *& result, bool additive)
+  static bool ParseRaw(RDeterministicFloatBase & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t.SetRaw(parsed.data());
+    return true;
+  }
+};
+
+template <typename ParsedType>
+struct StormDataJson<RDeterministicFloat<ParsedType>, void>
+{
+  static bool ParseRaw(RDeterministicFloat<ParsedType> & t, const char * str, const char *& result, bool additive)
   {
     std::string parsed;
     if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))

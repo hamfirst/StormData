@@ -9,8 +9,10 @@
 
 class RBool;
 class RString;
+class RDeterministicFloatBase;
 
 template <typename T> class RNumber;
+template <typename T> class RDeterministicFloat;
 template <typename T> class REnum;
 template <typename T> class ROpaque;
 template <typename T> class RSparseList;
@@ -107,6 +109,18 @@ struct SetParentInfoStruct<RBool> : public SetBasicParentInfo<RBool>
 
 template <typename NumericType>
 struct SetParentInfoStruct<RNumber<NumericType>> : public SetBasicParentInfo<RNumber<NumericType>>
+{
+
+};
+
+template <>
+struct SetParentInfoStruct<RDeterministicFloatBase> : public SetBasicParentInfo<RDeterministicFloatBase>
+{
+
+};
+
+template <typename ParsedType>
+struct SetParentInfoStruct<RDeterministicFloat<ParsedType>> : public SetBasicParentInfo<RDeterministicFloat<ParsedType>>
 {
 
 };
