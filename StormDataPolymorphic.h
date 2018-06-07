@@ -3,7 +3,7 @@
 #include "StormData.h"
 #include "StormDataChangeNotifier.h"
 
-template <class Base, class TypeDatabase, class TypeInfo>
+template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase>
 class RPolymorphic
 {
 public:
@@ -13,10 +13,19 @@ public:
     m_TypeNameHash(0),
     m_Data(nullptr)
   {
-
+    if (DefaultFirstNonBase)
+    {
+      auto type_info = TypeDatabase::GetFirstNonBaseType();
+      if (type_info)
+      {
+        m_TypeInfo = type_info;
+        m_TypeNameHash = type_info->m_TypeNameHash;
+        m_Data = static_cast<Base *>(type_info->HeapCreate());
+      }
+    }
   }
 
-  RPolymorphic(const RPolymorphic<Base, TypeDatabase, TypeInfo> & rhs)
+  RPolymorphic(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & rhs)
   {
     if (rhs.m_TypeInfo == 0)
     {
@@ -34,7 +43,7 @@ public:
     SetParentInfo();
   }
 
-  RPolymorphic(RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs) noexcept
+  RPolymorphic(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> && rhs) noexcept
   {
 #ifdef STORM_CHANGE_NOTIFIER
     m_ReflectionInfo = rhs.m_ReflectionInfo;
@@ -60,7 +69,7 @@ public:
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
-  RPolymorphic(RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs, StormReflectionParentInfo * new_parent) noexcept
+  RPolymorphic(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> && rhs, StormReflectionParentInfo * new_parent) noexcept
   {
     m_ReflectionInfo = rhs.m_ReflectionInfo;
     m_ReflectionInfo.m_ParentInfo = new_parent;
@@ -92,21 +101,21 @@ public:
     }
   }
 
-  RPolymorphic<Base, TypeDatabase, TypeInfo> & operator = (const RPolymorphic<Base, TypeDatabase, TypeInfo> & rhs)
+  RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & operator = (const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & rhs)
   {
     SetRaw(rhs);
     Modified();
     return *this;
   }
 
-  RPolymorphic<Base, TypeDatabase, TypeInfo> & operator = (RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs)
+  RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & operator = (RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> && rhs)
   {
     SetRaw(std::move(rhs));
     Modified();
     return *this;
   }
 
-  void SetRaw(const RPolymorphic<Base, TypeDatabase, TypeInfo> & rhs)
+  void SetRaw(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & rhs)
   {
     if (rhs.m_TypeInfo == 0)
     {
@@ -142,7 +151,7 @@ public:
     GetTypeInfo()->CopyRaw(rhs.GetValue(), GetValue());
   }
 
-  void SetRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs)
+  void SetRaw(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> && rhs)
   {
     if (m_Data != nullptr)
     {
@@ -175,7 +184,7 @@ public:
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
-  void Relocate(RPolymorphic<Base, TypeDatabase, TypeInfo> && rhs, StormReflectionParentInfo * new_parent) noexcept
+  void Relocate(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> && rhs, StormReflectionParentInfo * new_parent) noexcept
   {
     SetRaw(std::move(rhs));
     m_ReflectionInfo = rhs.m_ReflectionInfo;
@@ -242,6 +251,7 @@ public:
     auto type_info = TypeDatabase::GetTypeInfo(type_name_hash);
     if (type_info == nullptr)
     {
+      printf("Failed to find type for %d\n", type_name_hash);
       m_TypeInfo = nullptr;
       m_TypeNameHash = 0;
       m_Data = nullptr;

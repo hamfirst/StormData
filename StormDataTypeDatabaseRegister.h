@@ -1,5 +1,6 @@
 #pragma once
 
+#include "StormDataTypeDatabase.h"
 #include "StormDataTypeDatabaseRegister.h"
 
 #include "StormDataChangeNotifier.h"
@@ -34,6 +35,7 @@ template <typename Base, typename TypeInfo> template <typename Class>
 void StormDataTypeDatabase<Base, TypeInfo>::InitTypeInfo(TypeInfo & type_info)
 {
   type_info.m_Name = StormReflTypeInfo<Class>::GetName();
+  type_info.m_TypeNameHash = crc32(type_info.m_Name);
   type_info.HeapCreate = []() -> void * { return new Class; };
   type_info.HeapFree = [](void * data) { delete (Class *)data; };
   type_info.CopyRaw = [](const void * src, void * dest) { ((Class *)dest)->SetRaw(*(Class *)src); };
@@ -132,4 +134,20 @@ TypeInfo * StormDataTypeDatabase<Base, TypeInfo>::GetTypeInfo(uint32_t type_name
   }
 
   return &itr->second;
+}
+
+template <typename Base, typename TypeInfo>
+TypeInfo * StormDataTypeDatabase<Base, TypeInfo>::GetFirstNonBaseType()
+{
+  for (auto && elem : m_TypeList)
+  {
+    if (elem.second.m_BaseTypes.size() == 0)
+    {
+      continue;
+    }
+
+    return &elem.second;
+  }
+
+  return nullptr;
 }

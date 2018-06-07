@@ -191,6 +191,27 @@ public:
   }
 #endif
 
+  RMergeList(std::initializer_list<T> l) :
+    RMergeList()
+  {
+    m_Indices = Allocate<uint32_t>(l.size());
+    m_Values = Allocate<T>(l.size());
+    m_Capacity = l.size();
+    m_Size = l.size();
+    m_HighestIndex = (int)l.size() - 1;
+
+    auto itr = l.begin();
+    for (std::size_t index = 0; index < l.size(); index++)
+    {
+      m_Indices[index] = (int)index;
+      new(&m_Values[index]) T(*itr);
+
+      ++itr;
+    }
+
+    InitAllElements();
+  }
+
   ~RMergeList()
   {
     if (m_Capacity > 0)
@@ -349,7 +370,7 @@ public:
     return false;
   }
 
-  int HighestIndex()
+  int HighestIndex() const
   {
     return m_HighestIndex;
   }
@@ -363,14 +384,14 @@ public:
   {
     for (std::size_t index = 0; index < m_Size; index++)
     {
-      m_Indices[index] = index;
+      m_Indices[index] = (uint32_t)index;
     }
 
     UpdateAllElements();
     Compressed();
   }
 
-  bool HasAt(int logical_index) const
+  bool HasAt(std::size_t logical_index) const
   {
     for (size_t test = 0; test < m_Size; test++)
     {
@@ -422,6 +443,32 @@ public:
     }
 
     return nullptr;
+  }
+
+  T & operator[](std::size_t logical_index)
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
+  }
+
+  const T & operator[](std::size_t logical_index) const
+  {
+    for (size_t test = 0; test < m_Size; test++)
+    {
+      if (m_Indices[test] == logical_index)
+      {
+        return m_Values[test];
+      }
+    }
+
+    throw std::out_of_range("No element at index");
   }
 
   T & operator[](int logical_index)
@@ -567,7 +614,11 @@ private:
     for (std::size_t index = m_Size; index > start_index; index--)
     {
       m_Indices[index] = m_Indices[index - 1];
+#ifdef STORM_CHANGE_NOTIFIER
+      StormDataRelocateConstruct(std::move(m_Values[index - 1]), &m_Values[index], &m_ReflectionInfo);
+#else
       new (&m_Values[index]) T(std::move(m_Values[index - 1]));
+#endif
 
       m_Values[index - 1].~T();
     }
@@ -588,6 +639,40 @@ private:
 
 
       m_Values[index + 1].~T();
+    }
+  }
+
+  void ShiftUp(std::size_t start_index, std::size_t end_index)
+  {
+    for (std::size_t pos = 0; pos < m_Size; ++pos)
+    {
+      if (m_Indices[pos] >= index)
+      {
+        while (m_Indices[pos] < end_index)
+        {
+          m_Indices[pos]++;
+          pos++;
+        }
+
+        return;
+      }
+    }
+  }
+
+  void ShiftDown(std::size_t start_index, std::size_t end_index)
+  {
+    for (std::size_t pos = 0; pos < m_Size; ++pos)
+    {
+      if (m_Indices[pos] >= index)
+      {
+        while (m_Indices[pos] < end_index)
+        {
+          m_Indices[pos]--;
+          pos++;
+        }
+
+        return;
+      }
     }
   }
 

@@ -243,6 +243,106 @@ struct StormDataJson<RNumber<T>, void>
 };
 
 template <>
+struct StormReflJson<RDeterministicFloatBase, void>
+{
+  template <class StringBuilder>
+  static void Encode(const RDeterministicFloatBase & t, StringBuilder & sb)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void EncodePretty(const RDeterministicFloatBase & t, StringBuilder & sb, int indent)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "\"0\"";
+  }
+
+  static bool Parse(RDeterministicFloatBase & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t = parsed.data();
+    return true;
+  }
+};
+
+template <typename ParsedType>
+struct StormReflJson<RDeterministicFloat<ParsedType>, void>
+{
+  template <class StringBuilder>
+  static void Encode(const RDeterministicFloat<ParsedType> & t, StringBuilder & sb)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void EncodePretty(const RDeterministicFloat<ParsedType> & t, StringBuilder & sb, int indent)
+  {
+    StormReflJson<std::string>::Encode(t.GetStr(), sb);
+  }
+
+  template <class StringBuilder>
+  static void SerializeDefault(StringBuilder & sb)
+  {
+    sb += "\"0\"";
+  }
+
+  static bool Parse(RDeterministicFloat<ParsedType> & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t = parsed.data();
+    return true;
+  }
+};
+
+template <>
+struct StormDataJson<RDeterministicFloatBase, void>
+{
+  static bool ParseRaw(RDeterministicFloatBase & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t.SetRaw(parsed.data());
+    return true;
+  }
+};
+
+template <typename ParsedType>
+struct StormDataJson<RDeterministicFloat<ParsedType>, void>
+{
+  static bool ParseRaw(RDeterministicFloat<ParsedType> & t, const char * str, const char *& result, bool additive)
+  {
+    std::string parsed;
+    if (!StormReflJson<std::string>::Parse(parsed, str, result, additive))
+    {
+      return false;
+    }
+
+    t.SetRaw(parsed.data());
+    return true;
+  }
+};
+
+template <>
 struct StormReflJson<RString, void>
 {
   template <class StringBuilder>
@@ -744,6 +844,7 @@ struct StormReflJson<RMergeList<T>, void>
       auto & val = t.EmplaceAt(index);
       if (StormReflJson<T>::Parse(val, str, str, additive) == false)
       {
+        t.RemoveAt(index);
         if (StormReflJsonParseOverValue(str, str) == false)
         {
           return false;
@@ -879,7 +980,7 @@ struct StormReflJson<RMap<K, T>, void>
         return true;
       }
 
-      std::size_t index;
+      K index;
 
       if (*str != '\"')
       {
@@ -887,7 +988,7 @@ struct StormReflJson<RMap<K, T>, void>
       }
 
       str++;
-      if (StormReflJson<std::size_t>::Parse(index, str, str, false) == false)
+      if (StormReflJson<K>::Parse(index, str, str, false) == false)
       {
         return false;
       }
@@ -971,11 +1072,11 @@ struct StormDataJson<RMap<K, T>, void>
   }
 };
 
-template <typename Base, typename TypeDatabase, typename TypeInfo>
-struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
+struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>, void>
 {
   template <class StringBuilder>
-  static void Encode(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb)
+  static void Encode(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, StringBuilder & sb)
   {
     if (t.GetTypeInfo())
     {
@@ -992,7 +1093,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
   }
 
   template <class StringBuilder>
-  static void EncodePretty(const RPolymorphic<Base, TypeDatabase, TypeInfo> & t, StringBuilder & sb, int indent)
+  static void EncodePretty(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, StringBuilder & sb, int indent)
   {
     if (t.GetTypeInfo())
     {
@@ -1020,7 +1121,7 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
     sb += "{}";
   }
 
-  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
+  static bool Parse(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * str, const char *& result, bool additive)
   {
     StormReflJsonAdvanceWhiteSpace(str);
     if (*str != '{')
@@ -1178,13 +1279,13 @@ struct StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
   }
 };
 
-template <typename Base, typename TypeDatabase, typename TypeInfo>
-struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo>, void>
+template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
+struct StormDataJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>, void>
 {
-  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo> & t, const char * str, const char *& result, bool additive)
+  static bool ParseRaw(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * str, const char *& result, bool additive)
   {
-    RPolymorphic<Base, TypeDatabase, TypeInfo> val;
-    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo>>::Parse(val, str, result, additive))
+    RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> val;
+    if (!StormReflJson<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Parse(val, str, result, additive))
     {
       return false;
     }

@@ -12,6 +12,7 @@ struct StormDataTypeInfo
 {
   std::string m_Name;
   std::vector<std::pair<uint32_t, void * (*)(void *)>> m_BaseTypes;
+  uint32_t m_TypeNameHash;
 
   void * (*HeapCreate)();
   void(*HeapFree)(void * data);
@@ -79,6 +80,7 @@ public:
   static void FinalizeTypes();
 
   static TypeInfo * GetTypeInfo(uint32_t type_name_hash);
+  static TypeInfo * GetFirstNonBaseType();
 
 protected:
 
@@ -103,4 +105,3 @@ void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<Base,
     visitor(elem.first, elem.second);
   }
 }
-
