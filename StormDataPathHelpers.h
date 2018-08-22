@@ -191,13 +191,13 @@ namespace StormDataPathHelpers
       }
 
       str++;
-      K index;
+      uint64_t index;
       if (StormDataChangePacketHelpers::ParseIndex(index, str, str) == false)
       {
         return false;
       }
 
-      auto val = t.TryGet(index);
+      auto val = t.TryGet(static_cast<K>(index));
       if (val == nullptr)
       {
         return false;

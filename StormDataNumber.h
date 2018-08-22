@@ -726,6 +726,7 @@ protected:
 #endif
   }
 
+public:
   char m_Value[kMaxLength];
   STORM_CHANGE_NOTIFIER_INFO;
 };
@@ -752,17 +753,15 @@ public:
 
   RDeterministicFloat(RDeterministicFloatBase && val) :
     RDeterministicFloatBase(std::move(val)),
-    m_ParsedType(val.m_ParsedType)
+    m_ParsedType(val.m_Value)
   {
-
   }
 
 #ifdef STORM_CHANGE_NOTIFIER
   RDeterministicFloat(RDeterministicFloatBase && val, StormReflectionParentInfo * new_parent) :
     RDeterministicFloatBase(std::move(val), new_parent),
-    m_ParsedType(val.m_ParsedType)
+    m_ParsedType(val.m_Value)
   {
-
   }
 #endif
 

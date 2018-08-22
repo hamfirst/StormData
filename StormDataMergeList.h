@@ -646,7 +646,7 @@ private:
   {
     for (std::size_t pos = 0; pos < m_Size; ++pos)
     {
-      if (m_Indices[pos] >= index)
+      if (m_Indices[pos] >= start_index)
       {
         while (m_Indices[pos] < end_index)
         {
@@ -663,7 +663,7 @@ private:
   {
     for (std::size_t pos = 0; pos < m_Size; ++pos)
     {
-      if (m_Indices[pos] >= index)
+      if (m_Indices[pos] >= start_index)
       {
         while (m_Indices[pos] < end_index)
         {
