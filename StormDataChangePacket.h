@@ -38,6 +38,8 @@ bool StormDataApplyChangePacket(T & t, const char * str)
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, str);
   case ReflectionNotifyChangeType::kRearrange:
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, str);
+  default:
+    return false;
   }
 
   return false;
@@ -60,9 +62,9 @@ bool StormDataApplyChangePacket(T & t, ReflectionNotifyChangeType type, const ch
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRemove<T>::Process(t, path, index);
   case ReflectionNotifyChangeType::kRevert:
     return StormDataChangePacketHelpers::StormDataApplyChangePacketRevertDefault<T>::Process(t, path);
+  default:
+    return false;
   }
-
-  return false;
 }
 
 template <class T>
