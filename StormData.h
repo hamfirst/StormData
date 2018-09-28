@@ -123,72 +123,72 @@ void StormDataSetRawMove(T && src, T & dst)
 #define STORM_DATA_DEFAULT_CONSTRUCTION(TypeName) \
   STORM_REFL; \
   STORM_CHANGE_NOTIFIER_INFO; \
-  TypeName(); \
-  TypeName(const TypeName & rhs); \
-  TypeName(TypeName && rhs); \
-  TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent); \
-  TypeName & operator = (const TypeName & rhs); \
-  TypeName & operator = (TypeName && rhs); \
-  void SetRaw(const TypeName & rhs); \
-  void SetRaw(TypeName && rhs); \
-  void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent); \
+  TypeName() noexcept; \
+  TypeName(const TypeName & rhs) noexcept; \
+  TypeName(TypeName && rhs) noexcept; \
+  TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept; \
+  TypeName & operator = (const TypeName & rhs) noexcept; \
+  TypeName & operator = (TypeName && rhs) noexcept; \
+  void SetRaw(const TypeName & rhs) noexcept; \
+  void SetRaw(TypeName && rhs) noexcept; \
+  void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept; \
 
 #define STORM_DATA_DEFAULT_CONSTRUCTION_DERIVED(TypeName) \
   STORM_REFL; \
-  TypeName(); \
-  TypeName(const TypeName & rhs); \
-  TypeName(TypeName && rhs); \
-  TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent); \
-  TypeName & operator = (const TypeName & rhs); \
-  TypeName & operator = (TypeName && rhs); \
-  void SetRaw(const TypeName & rhs); \
-  void SetRaw(TypeName && rhs); \
-  void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent); \
+  TypeName() noexcept; \
+  TypeName(const TypeName & rhs) noexcept; \
+  TypeName(TypeName && rhs) noexcept; \
+  TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept; \
+  TypeName & operator = (const TypeName & rhs) noexcept; \
+  TypeName & operator = (TypeName && rhs) noexcept; \
+  void SetRaw(const TypeName & rhs) noexcept; \
+  void SetRaw(TypeName && rhs) noexcept; \
+  void Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept; \
 
 #define STORM_DATA_DEFAULT_CONSTRUCTION_IMPL(TypeName) \
-  TypeName::TypeName() \
+  TypeName::TypeName() noexcept \
   { \
     InitializeParentInfo(*this); \
   } \
-  TypeName::TypeName(const TypeName & rhs) \
+  TypeName::TypeName(const TypeName & rhs) noexcept \
   { \
     InitializeParentInfo(*this); \
     StormReflVisitEach(rhs, *this, [](auto src, auto dst) { StormReflCopy(dst.Get(), src.Get()); }); \
   } \
-  TypeName::TypeName(TypeName && rhs) \
+  TypeName::TypeName(TypeName && rhs) noexcept \
   { \
     InitializeParentInfo(*this); \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [](auto src, auto dst) { StormReflElementwiseMove(dst.Get(), src.Get()); }); \
     MoveParentInfo(rhs, *this); \
     StormReflVisitEach(*this, [&](auto f) { SetParentInfoPointer(f.Get(), &m_ReflectionInfo); }); \
   } \
-  TypeName::TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent) \
+  TypeName::TypeName(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept \
   { \
     m_ReflectionInfo = rhs.m_ReflectionInfo; \
     m_ReflectionInfo.m_ParentInfo = new_parent; \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataRelocate(std::move(src.Get()), dst.Get(), &m_ReflectionInfo); }); \
   } \
-  TypeName & TypeName::operator = (const TypeName & rhs) \
+  TypeName & TypeName::operator = (const TypeName & rhs) noexcept \
   { \
     StormReflVisitEach(static_cast<const TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawCopy(src.Get(), dst.Get()); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
   } \
-  TypeName & TypeName::operator = (TypeName && rhs) \
+  TypeName & TypeName::operator = (TypeName && rhs) noexcept \
   { \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawMove(std::move(src.Get()), dst.Get()); }); \
     ReflectionNotifySetObject(m_ReflectionInfo, StormReflEncodeJson(*this)); \
     return *this; \
   } \
-  void TypeName::SetRaw(const TypeName & rhs) \
+  void TypeName::SetRaw(const TypeName & rhs) noexcept \
   { \
     StormReflVisitEach(static_cast<const TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawCopy(src.Get(), dst.Get()); }); \
   } \
-  void TypeName::SetRaw(TypeName && rhs) \
+  void TypeName::SetRaw(TypeName && rhs) noexcept \
   { \
     StormReflVisitEach(static_cast<TypeName &>(rhs), *this, [&](auto src, auto dst) { StormDataSetRawMove(std::move(src.Get()), dst.Get()); }); \
   } \
-  void TypeName::Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent) \
+  void TypeName::Relocate(TypeName && rhs, StormReflectionParentInfo * new_parent) noexcept \
   { \
     m_ReflectionInfo = rhs.m_ReflectionInfo; \
     m_ReflectionInfo.m_ParentInfo = new_parent; \
