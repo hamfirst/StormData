@@ -31,8 +31,8 @@ struct StormDataInitBaseClass<TypeInfo, Class, BaseType, BaseTypes...>
   }
 };
 
-template <typename Base, typename TypeInfo> template <typename Class>
-void StormDataTypeDatabase<Base, TypeInfo>::InitTypeInfo(TypeInfo & type_info)
+template <typename Class, typename TypeInfo>
+void StormDataInitTypeInfo(TypeInfo & type_info)
 {
   type_info.m_Name = StormReflTypeInfo<Class>::GetName();
   type_info.m_TypeNameHash = crc32(type_info.m_Name);
@@ -59,23 +59,6 @@ void StormDataTypeDatabase<Base, TypeInfo>::InitTypeInfo(TypeInfo & type_info)
 
   type_info.DeltaCopy = [](const void * src, void * dest) { StormDataDeltaCopy(*(const Class *)src, *(Class *)dest); };
   type_info.Sync = [](const void * src, void * dest, const char * path) { StormDataSync(*(const Class *)src, *(Class *)dest, path); };
-}
-
-template <typename Base, typename TypeInfo> template <typename Class, typename ... BaseTypes>
-void StormDataTypeDatabase<Base, TypeInfo>::RegisterType()
-{
-  static_assert(std::is_base_of<Base, Class>::value, "Registering type that is not of the right base class");
-  static_assert(std::is_same<Base, Class>::value || sizeof...(BaseTypes) > 0, "Registering type that does not have a base class specified");
-
-  TypeInfo type_info;
-  InitTypeInfo<Class>(type_info);
-
-  type_info.m_BaseTypes.emplace_back(std::make_pair(StormReflTypeInfo<Class>::GetNameHash(), [](void * ptr) {return ptr; }));
-
-  StormDataInitBaseClass<TypeInfo, Class, BaseTypes...>::Process(type_info);
-
-  auto type_name_hash = StormReflTypeInfo<Class>::GetNameHash();
-  m_TypeList.emplace(std::make_pair(type_name_hash, type_info));
 }
 
 template <typename Base, typename TypeInfo>

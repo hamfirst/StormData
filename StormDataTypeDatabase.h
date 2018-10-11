@@ -55,53 +55,50 @@ struct StormDataTypeInfo
 template <typename Base, typename TypeInfo>
 class StormDataTypeDatabase;
 
-template <typename Base, typename TypeInfo>
-class StormDataTypeDatabaseVistorInfo
-{
-
-};
-
 template <typename Base, typename TypeInfo, typename Visitor>
-void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<Base, TypeInfo> & db_info, Visitor && visitor);
+void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabase<Base, TypeInfo> & db_info, Visitor && visitor);
 
 template <typename Base, typename TypeInfo>
 class StormDataTypeDatabase
 {
 public:
 
-  using VisitorInfo = StormDataTypeDatabaseVistorInfo<Base, TypeInfo>;
+  void FinalizeTypes();
 
-  template <typename Class>
-  static void InitTypeInfo(TypeInfo & type_info);
-
-  template <typename Class, typename ... BaseTypes>
-  static void RegisterType();
-
-  static void FinalizeTypes();
-
-  static TypeInfo * GetTypeInfo(uint32_t type_name_hash);
-  static TypeInfo * GetFirstNonBaseType();
+  TypeInfo * GetTypeInfo(uint32_t type_name_hash);
+  TypeInfo * GetFirstNonBaseType();
 
 protected:
 
   template <typename BaseDef, typename TypeInfoDef, typename Visitor>
-  friend void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<BaseDef, TypeInfoDef> & db_info, Visitor && visitor);
+  friend void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabase<BaseDef, TypeInfoDef> & db_info, Visitor && visitor);
 
-  static void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *));
+  void AddBaseTypesForType(TypeInfo & type_info, uint32_t base_type_hash, void * (*CastFunc)(void *));
 
 protected:
 
-  static std::unordered_map<uint32_t, TypeInfo> m_TypeList;
+  std::unordered_map<uint32_t, TypeInfo> m_TypeList;
 };
 
-template <typename Base, typename TypeInfo>
-std::unordered_map<uint32_t, TypeInfo> StormDataTypeDatabase<Base, TypeInfo>::m_TypeList;
+template <typename DerivedTypeDatabase>
+class StormDataTypeDatabaseSingleton
+{
+public:
+
+  static inline DerivedTypeDatabase db;
+  static DerivedTypeDatabase & Get()
+  {
+    return db;
+  }
+};
 
 template <typename Base, typename TypeInfo, typename Visitor>
-void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabaseVistorInfo<Base, TypeInfo> & db_info, Visitor && visitor)
+void StormDataTypeDatabaseVisitTypes(const StormDataTypeDatabase<Base, TypeInfo> & db_info, Visitor && visitor)
 {
-  for (auto & elem : StormDataTypeDatabase<Base, TypeInfo>::m_TypeList)
+  for (auto & elem : db_info.m_TypeList)
   {
     visitor(elem.first, elem.second);
   }
 }
+
+

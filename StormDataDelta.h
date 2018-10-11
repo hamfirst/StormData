@@ -120,9 +120,9 @@ namespace StormDataDeltaHelpers
   };
 
   template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataDelta<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataDelta<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static void Process(const RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & src, RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & dest)
+    static void Process(const RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & src, RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & dest)
     {
       if (src.GetTypeNameHash() != dest.GetTypeNameHash())
       {

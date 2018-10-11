@@ -289,18 +289,18 @@ namespace StormDataChangePacketHelpers
   };
 
   template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketSet<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketSet<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, const char * data)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, const char * data)
     {
       if (*path == 0)
       {
-        return StormDataApplySet<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Process(t, data);
+        return StormDataApplySet<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Process(t, data);
       }
       else if (*path == ' ')
       {
         path++;
-        return StormDataApplySet<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Process(t, path);
+        return StormDataApplySet<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>::Process(t, path);
       }
 
       if (*path == '.' && *(path + 1) == 'T')
@@ -356,9 +356,9 @@ namespace StormDataChangePacketHelpers
   };
 
   template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketClear<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketClear<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -401,9 +401,9 @@ namespace StormDataChangePacketHelpers
   };
 
   template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketCompress<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketCompress<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -462,9 +462,9 @@ namespace StormDataChangePacketHelpers
   };
 
   template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketInsert<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketInsert<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, uint64_t index, const char * data)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, uint64_t index, const char * data)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -547,9 +547,9 @@ namespace StormDataChangePacketHelpers
   };
 
   template <typename Base, typename TypeDatabase, typename TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketRemove<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketRemove<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, uint64_t index)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path, uint64_t index)
     {
       if (*path == 0 || *path == ' ')
       {
@@ -616,9 +616,9 @@ namespace StormDataChangePacketHelpers
   };
 
   template <class Base, class TypeDatabase, class TypeInfo, bool DefaultFirstNonBase>
-  struct StormDataApplyChangePacketRevertDefault<RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
+  struct StormDataApplyChangePacketRevertDefault<RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase>>
   {
-    static bool Process(RPolymorphic<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
+    static bool Process(RPolymorphicBase<Base, TypeDatabase, TypeInfo, DefaultFirstNonBase> & t, const char * path)
     {
       if (*path == 0 || *path == ' ')
       {
