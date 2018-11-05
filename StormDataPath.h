@@ -7,10 +7,10 @@
 #include <vector>
 
 template <typename T>
-std::string StormDataGetPath(T & t)
+std::string StormDataGetPath(const T & t)
 {
   std::string path;
-  StormReflectionParentInfo * parent_info = &t.m_ReflectionInfo;
+  const StormReflectionParentInfo * parent_info = &t.m_ReflectionInfo;
 
   while (parent_info)
   {

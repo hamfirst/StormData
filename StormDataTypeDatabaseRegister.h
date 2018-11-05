@@ -36,6 +36,7 @@ void StormDataInitTypeInfo(TypeInfo & type_info)
 {
   type_info.m_Name = StormReflTypeInfo<Class>::GetName();
   type_info.m_TypeNameHash = crc32(type_info.m_Name);
+  type_info.m_TypeIdHash = typeid(Class).hash_code();
   type_info.HeapCreate = []() -> void * { return new Class; };
   type_info.HeapFree = [](void * data) { delete (Class *)data; };
   type_info.CopyRaw = [](const void * src, void * dest) { ((Class *)dest)->SetRaw(*(Class *)src); };
