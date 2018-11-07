@@ -39,6 +39,9 @@ struct StormDataTypeInfo
   void(*DeltaCopy)(const void * src, void * dest);
   void(*Sync)(const void * src, void * dest, const char * path);
 
+  void *(*Cast)(std::size_t type_id, void * obj);
+  const void *(*ConstCast)(std::size_t type_id, const void * obj);
+
   void * CastTo(void * ptr, uint32_t type_name_hash) const
   {
     for (auto & base : m_BaseTypes)

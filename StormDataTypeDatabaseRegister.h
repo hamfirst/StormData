@@ -60,6 +60,9 @@ void StormDataInitTypeInfo(TypeInfo & type_info)
 
   type_info.DeltaCopy = [](const void * src, void * dest) { StormDataDeltaCopy(*(const Class *)src, *(Class *)dest); };
   type_info.Sync = [](const void * src, void * dest, const char * path) { StormDataSync(*(const Class *)src, *(Class *)dest, path); };
+
+  type_info.Cast = static_cast<void * (*)(std::size_t, void *)>(&StormReflTypeInfo<Class>::CastFromTypeIdHash);
+  type_info.ConstCast = static_cast<const void * (*)(std::size_t, const void *)>(&StormReflTypeInfo<Class>::CastFromTypeIdHash);
 }
 
 template <typename Base, typename TypeInfo>
