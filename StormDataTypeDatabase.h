@@ -98,9 +98,9 @@ class StormDataTypeDatabaseSingleton
 {
 public:
 
-  static inline DerivedTypeDatabase db;
   static DerivedTypeDatabase & Get()
   {
+    static DerivedTypeDatabase db;
     return db;
   }
 };
