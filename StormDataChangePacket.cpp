@@ -145,6 +145,11 @@ bool StormDataParseChangePacket(ReflectionChangeNotification & notification, con
     }
 
     return true;
+  case ReflectionNotifyChangeType::kRearrange:
+    if (*data != 0)
+    {
+      return false;
+    }
   }
 
   return false;

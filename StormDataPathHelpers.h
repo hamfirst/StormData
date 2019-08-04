@@ -21,6 +21,11 @@ struct StormDataNullField
   {
 
   }
+
+  static constexpr bool HasDefault()
+  {
+    return true;
+  }
 };
 
 namespace StormDataPathHelpers

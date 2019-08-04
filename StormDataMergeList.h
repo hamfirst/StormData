@@ -411,6 +411,11 @@ public:
 
   T * TryGet(int logical_index)
   {
+    if(logical_index < 0)
+    {
+      return nullptr;
+    }
+
     for (size_t test = 0; test < m_Size; test++)
     {
       if (m_Indices[test] == logical_index)
@@ -429,6 +434,11 @@ public:
 
   const T * TryGet(int logical_index) const
   {
+    if(logical_index < 0)
+    {
+      return nullptr;
+    }
+
     for (size_t test = 0; test < m_Size; test++)
     {
       if (m_Indices[test] == logical_index)

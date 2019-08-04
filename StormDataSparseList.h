@@ -353,9 +353,28 @@ public:
     }
   }
 
+  bool Empty() const
+  {
+    return m_HighestIndex == -1;
+  }
+
   int HighestIndex() const
   {
     return m_HighestIndex;
+  }
+
+  std::size_t Count() const
+  {
+    std::size_t count = 0;
+    for (std::size_t index = 0; index < m_Capacity; index++)
+    {
+      if (m_Values[index].m_Valid)
+      {
+        ++count;
+      }
+    }
+
+    return count;
   }
 
   std::size_t Size() const

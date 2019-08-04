@@ -1,7 +1,8 @@
 
 #include <StormRefl/StormReflJsonStd.h>
 #include <hash/Hash64.h>
-#include <optional/optional.hpp>
+
+#include <optional>
 
 #include "StormDataChangeNotifier.h"
 

@@ -251,7 +251,7 @@ public:
     auto type_info = TypeDatabase::Get().GetTypeInfo(type_name_hash);
     if (type_info == nullptr)
     {
-      printf("Failed to find type for %d\n", type_name_hash);
+      //printf("Failed to find type for %d\n", type_name_hash);
       m_TypeInfo = nullptr;
       m_TypeNameHash = 0;
       m_Data = nullptr;

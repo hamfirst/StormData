@@ -128,6 +128,31 @@ public:
     return m_Value == val.m_Value;
   }
 
+  bool operator == (const std::string & val) const
+  {
+    return m_Value == val;
+  }
+
+  bool operator == (czstr val) const
+  {
+    return m_Value == val;
+  }
+
+  bool operator != (const RString & val) const
+  {
+    return m_Value != val.m_Value;
+  }
+
+  bool operator != (const std::string & val) const
+  {
+    return m_Value != val;
+  }
+
+  bool operator != (czstr val) const
+  {
+    return m_Value != val;
+  }
+
   void SetIfDifferent(const std::string & val)
   {
     if (m_Value != val)

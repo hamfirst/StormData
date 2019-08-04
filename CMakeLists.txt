@@ -1,116 +1,69 @@
 cmake_minimum_required(VERSION 3.1.0)
 
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}/External)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${PROJECT_SOURCE_DIR}
+                    ${PROJECT_SOURCE_DIR}/External
+                    ${PROJECT_SOURCE_DIR}/StormTech
+                    ${PROJECT_SOURCE_DIR}/Tools
+                    ${PROJECT_SOURCE_DIR}/Shared
+                    ${PROJECT_SOURCE_DIR}/Project
+                    ${PROJECT_SOURCE_DIR}/Lobby)
+
 set(CMAKE_CXX_STANDARD 17)
 
 set(GENERIC_SRC_StormData 
-            StormDataPath.cpp
-            StormDataChangePacket.cpp
-            StormDataJsonUtil.cpp
             StormDataChangeNotifier.cpp
+            StormDataChangePacket.cpp
             StormDataChangePacketHelpers.cpp
-            #CPP_PLACEHOLDER
+            StormDataJsonUtil.cpp
+            StormDataPath.cpp
             )
+
 set(GENERIC_HEADER_StormData 
-            StormDataUtil.h
-            StormDataChangeType.refl.meta.h
-            StormDataTypeDatabase.h
-            StormDataChangeType.refl.h
-            StormDataMap.h
-            StormDataTypeDatabaseRegister.h
-            StormDataNumber.h
-            StormDataChangePacketHelpers.h
-            StormDataSync.h
-            StormDataEnum.h
-            StormDataPathHelpers.h
-            StormDataChangeNotifier.h
-            StormDataParentInfo.h
-            StormDataParent.h
-            StormDataPolymorphic.h
-            StormDataMergeList.h
-            StormDataOpaque.h
-            StormDataJsonUtil.h
-            StormDataPath.h
-            StormDataTypes.h
-            StormDataListUtil.h
             StormData.h
-            StormDataSparseList.h
-            StormDataJson.h
-            StormDataList.h
+            StormDataChangeNotifier.h
             StormDataChangePacket.h
+            StormDataChangePacketHelpers.h
+            StormDataChangeType.refl.h
+            StormDataChangeType.refl.meta.h
             StormDataDelta.h
+            StormDataEnum.h
+            StormDataJson.h
+            StormDataJsonUtil.h
+            StormDataList.h
+            StormDataListUtil.h
+            StormDataMap.h
+            StormDataMergeList.h
+            StormDataNumber.h
+            StormDataOpaque.h
+            StormDataOptional.h
+            StormDataParent.h
+            StormDataParentInfo.h
+            StormDataPath.h
+            StormDataPathHelpers.h
+            StormDataPolymorphic.h
+            StormDataSparseList.h
             StormDataString.h
-            #HEADER_PLACEHOLDER
+            StormDataSync.h
+            StormDataTypeDatabase.h
+            StormDataTypeDatabaseRegister.h
+            StormDataTypes.h
+            StormDataUtil.h
             )
+
 set(GENERIC_REFL_StormData 
             StormDataChangeType.refl.h
-            #REFL_PLACEHOLDER
             )
 
-if (MSVC)
-  add_definitions(-D_WINDOWS)
-  include_directories(${PROJECT_SOURCE_DIR}/External/Windows)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
-endif()
-if (WEB)
-  add_definitions(-D_WEB)
-  include_directories(${PROJECT_SOURCE_DIR}/External/Web)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
-endif()
-if (IOS)
-  add_definitions(-D_IOS)
-  include_directories(${PROJECT_SOURCE_DIR}/External/IOS)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
-endif()
-if (APPLE AND NOT IOS)
-  add_definitions(-D_MACOS)
-  include_directories(${PROJECT_SOURCE_DIR}/External/MacOS)
-  include_directories(/usr/include/freetype2)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
-endif()
-if (ANDROID)
-  add_definitions(-D_ANDROID)
-  include_directories(${PROJECT_SOURCE_DIR}/External/Android)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
-endif()
-if (UNIX AND NOT APPLE)
-  add_definitions(-D_LINUX)
-  include_directories(${PROJECT_SOURCE_DIR}/External/Linux)
-  include_directories(/usr/include/freetype2)
-  set(PLATFORM_SRC_StormData 
-            )
-
-set(PLATFORM_HEADER_StormData 
-            )
+if(GENERATE_REFL)
+  foreach(REFL_FILE ${GENERIC_REFL_StormData})
+    string(REPLACE ".refl.h" ".refl.meta.h" META_FILE ${REFL_FILE})
+    add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${META_FILE}
+                       COMMAND stormrefl ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE} -- -DSTORM_REFL_PARSE -D_CRT_SECURE_NO_WARNINGS -std=c++17 -x c++ -Wno-pragma-once-outside-header -I${CMAKE_CURRENT_SOURCE_DIR} -I${PROJECT_SOURCE_DIR} -I${PROJECT_SOURCE_DIR}/StormTech -I${PROJECT_SOURCE_DIR}/Tools -I${PROJECT_SOURCE_DIR}/Shared -I${PROJECT_SOURCE_DIR}/Project -I${PROJECT_SOURCE_DIR}/Lobby -I${PROJECT_SOURCE_DIR}/External -I${CLANG_HEADER_PATH} -D_SILENCE_ALL_CXX17_DEPRECATION_WARNINGS
+                       MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE}
+                       IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE})
+  endforeach()
 endif()
 
-foreach(REFL_FILE ${GENERIC_REFL_StormData})
-  string(REPLACE ".refl.h" ".refl.meta.h" META_FILE ${REFL_FILE})
-  add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/${META_FILE}
-                     COMMAND stormrefl ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE} -- -DSTORM_REFL_PARSE -D_CRT_SECURE_NO_WARNINGS -std=c++17 -x c++ -Wno-pragma-once-outside-header -I${CMAKE_CURRENT_SOURCE_DIR} -I${PROJECT_SOURCE_DIR} -I${PROJECT_SOURCE_DIR}/External -I${CLANG_HEADER_PATH}
-                     MAIN_DEPENDENCY ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE}
-                     IMPLICIT_DEPENDS CXX ${CMAKE_CURRENT_SOURCE_DIR}/${REFL_FILE})
-endforeach()
+add_library(StormData STATIC ${GENERIC_SRC_StormData} ${GENERIC_HEADER_StormData})
+source_group(TREE "${CMAKE_CURRENT_SOURCE_DIR}" FILES ${GENERIC_SRC_StormData} ${GENERIC_HEADER_StormData})
 
-add_library(StormData STATIC ${GENERIC_SRC_StormData} ${PLATFORM_SRC_StormData}
-            ${GENERIC_HEADER_StormData} ${PLATFORM_HEADER_StormData})
